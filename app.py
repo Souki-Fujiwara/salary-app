@@ -19,14 +19,12 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput, .stSelect
     letter-spacing: 0.01em;
 }
 
-/* 全体の背景・余白調整 */
 .block-container {
     padding-top: 2rem !important;
     padding-bottom: 3rem !important;
     max-width: 820px !important;
 }
 
-/* メインタイトル */
 .app-title {
     font-size: 1.75rem;
     font-weight: 700;
@@ -37,7 +35,6 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput, .stSelect
     border-bottom: 1px solid #E2E8F0;
 }
 
-/* セクション見出し */
 .section-header {
     font-size: 1.1rem;
     font-weight: 600;
@@ -56,7 +53,6 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput, .stSelect
     margin-bottom: 0.4rem;
 }
 
-/* タブのスタイリング */
 .stTabs [data-baseweb="tab-list"] {
     gap: 0.5rem;
     border-bottom: 1px solid #E2E8F0;
@@ -75,7 +71,6 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput, .stSelect
     border-bottom: 2px solid #0F172A !important;
 }
 
-/* メトリクスカード */
 [data-testid="stMetric"] {
     background-color: #F8FAFC;
     border: 1px solid #E2E8F0;
@@ -93,7 +88,6 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput, .stSelect
     color: #0F172A !important;
 }
 
-/* フォーム枠 */
 [data-testid="stForm"] {
     background-color: #FFFFFF;
     border: 1px solid #E2E8F0;
@@ -102,7 +96,6 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput, .stSelect
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
 }
 
-/* プライマリボタン */
 .stButton > button[kind="primary"], [data-testid="stFormSubmitButton"] > button {
     background-color: #0F172A !important;
     color: #FFFFFF !important;
@@ -116,7 +109,6 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput, .stSelect
     background-color: #334155 !important;
 }
 
-/* プログレスバー */
 .stProgress > div > div > div > div {
     background-color: #0F172A !important;
 }
@@ -215,6 +207,19 @@ if not df_settings.empty:
         if row["key"] in settings:
             settings[row["key"]] = float(row["value"])
 
+# --- 扶養計算対象期間判定関数 ---
+def is_kyuyo_fuyo_ym(ym_str, target_year):
+    """さしす・京進用：前年12月 〜 当年11月（当年1月〜12月振込分）"""
+    ym = str(ym_str)[:7]
+    prev_dec = f"{target_year - 1}-12"
+    cur_months = {f"{target_year}-{m:02d}" for m in range(1, 12)}
+    return ym == prev_dec or ym in cur_months
+
+def is_toshin_fuyo_ym(ym_str, target_year):
+    """東進用：当年1月 〜 当年12月（当年2月〜翌年1月振込分）"""
+    ym = str(ym_str)[:7]
+    return ym.startswith(f"{target_year}-")
+
 # --- 東進 締め期間（28日〜翌月27日）判定・単価取得関数 ---
 PERIOD_LABELS = [
     f"{m:02d}28〜{(m % 12) + 1:02d}27" for m in range(1, 13)
@@ -234,14 +239,12 @@ def get_toshin_period_key(date_str):
     return f"{start_y}-{start_m:02d}28〜{end_m:02d}27"
 
 def format_period_range_desc(year_val, label_str):
-    """選択された年とラベルから実際の日付範囲の説明文を生成"""
     start_m = int(label_str[:2])
     end_m = int(label_str[5:7])
     end_y = year_val + 1 if end_m < start_m else year_val
     return f"{year_val}/{start_m:02d}/28 〜 {end_y}/{end_m:02d}/27"
 
 def get_toshin_units_for_period(period_key):
-    """指定期間の東進単価（通常・短答・記述）を取得。未登録ならデフォルト値を返す"""
     if not df_toshin_rates.empty:
         matched = df_toshin_rates[df_toshin_rates["period_key"] == period_key]
         if not matched.empty:
@@ -487,29 +490,34 @@ with tab_summary:
     df_bonuses["amount"] = pd.to_numeric(df_bonuses["amount"], errors="coerce").fillna(0)
     df_adjs["amount"] = pd.to_numeric(df_adjs["amount"], errors="coerce").fillna(0)
 
-    df_y = df_logs[df_logs["date"].astype(str).str.startswith(y_str)].copy()
-    df_by = df_bonuses[df_bonuses["year_month"].astype(str).str.startswith(y_str)].copy()
-    df_ay = df_adjs[df_adjs["year_month"].astype(str).str.startswith(y_str)].copy()
+    # 1. さしす・京進の扶養対象データ（前年12月 〜 当年11月 稼働分 ＝ 当年1月〜12月振込分）
+    df_logs_kyuyo = df_logs[df_logs["date"].apply(lambda d: is_kyuyo_fuyo_ym(d, target_year))].copy()
+    df_bonuses_fuyo = df_bonuses[df_bonuses["year_month"].apply(lambda ym: is_kyuyo_fuyo_ym(ym, target_year))].copy()
+    df_adjs_kyuyo = df_adjs[df_adjs["year_month"].apply(lambda ym: is_kyuyo_fuyo_ym(ym, target_year))].copy()
 
-    # 給料調整の集計（旧データ互換含む）
-    adj_sashisu = df_ay[df_ay["employer"].isin(["さしす", "さしす（給料）"])]["amount"].sum()
-    adj_kyoshin = df_ay[df_ay["employer"].isin(["京進", "京進（給料）"])]["amount"].sum()
-    adj_toshin = df_ay[df_ay["employer"].isin(["東進", "東進（報酬）"])]["amount"].sum()
+    # 2. 東進の扶養・雑所得対象データ（当年1月 〜 当年12月 稼働分 ＝ 当年2月〜翌年1月振込分）
+    df_logs_toshin = df_logs[df_logs["date"].apply(lambda d: is_toshin_fuyo_ym(d, target_year))].copy()
+    df_adjs_toshin = df_adjs[df_adjs["year_month"].apply(lambda ym: is_toshin_fuyo_ym(ym, target_year))].copy()
 
-    # 交通費調整の集計（勤務先別）
-    adj_trans_sashisu = df_ay[df_ay["employer"] == "さしす（交通費）"]["amount"].sum()
-    adj_trans_kyoshin = df_ay[df_ay["employer"] == "京進（交通費）"]["amount"].sum()
-    adj_trans_toshin = df_ay[df_ay["employer"] == "東進（交通費）"]["amount"].sum()
-    adj_trans_other = df_ay[df_ay["employer"] == "交通費"]["amount"].sum()
+    # 調整額の集計（それぞれの対象期間で抽出）
+    adj_sashisu = df_adjs_kyuyo[df_adjs_kyuyo["employer"].isin(["さしす", "さしす（給料）"])]["amount"].sum()
+    adj_kyoshin = df_adjs_kyuyo[df_adjs_kyuyo["employer"].isin(["京進", "京進（給料）"])]["amount"].sum()
+    adj_toshin = df_adjs_toshin[df_adjs_toshin["employer"].isin(["東進", "東進（報酬）"])]["amount"].sum()
+
+    # 交通費調整の集計（さしす・京進は前年12月〜当年11月、東進は当年1月〜12月）
+    adj_trans_sashisu = df_adjs_kyuyo[df_adjs_kyuyo["employer"] == "さしす（交通費）"]["amount"].sum()
+    adj_trans_kyoshin = df_adjs_kyuyo[df_adjs_kyuyo["employer"] == "京進（交通費）"]["amount"].sum()
+    adj_trans_toshin = df_adjs_toshin[df_adjs_toshin["employer"] == "東進（交通費）"]["amount"].sum()
+    adj_trans_other = df_adjs_kyuyo[df_adjs_kyuyo["employer"] == "交通費"]["amount"].sum()
 
     # 年間合計
-    y_sashisu = df_y["sashisu_pay"].sum() + adj_sashisu
-    y_kyoshin = df_y["kyoshin_pay"].sum() + df_by["amount"].sum() + adj_kyoshin
-    y_toshin = df_y["toshin_pay"].sum() + adj_toshin
+    y_sashisu = df_logs_kyuyo["sashisu_pay"].sum() + adj_sashisu
+    y_kyoshin = df_logs_kyuyo["kyoshin_pay"].sum() + df_bonuses_fuyo["amount"].sum() + adj_kyoshin
+    y_toshin = df_logs_toshin["toshin_pay"].sum() + adj_toshin
     y_fuyo_total = y_sashisu + y_kyoshin + y_toshin
 
-    y_trans_sashisu = df_y["sashisu_trans"].sum() + adj_trans_sashisu
-    y_trans_kyoshin = df_y["kyoshin_trans"].sum() + adj_trans_kyoshin
+    y_trans_sashisu = df_logs_kyuyo["sashisu_trans"].sum() + adj_trans_sashisu
+    y_trans_kyoshin = df_logs_kyuyo["kyoshin_trans"].sum() + adj_trans_kyoshin
     y_trans_toshin = adj_trans_toshin
     y_trans_total = y_trans_sashisu + y_trans_kyoshin + y_trans_toshin + adj_trans_other
 
@@ -518,7 +526,7 @@ with tab_summary:
     m1, m2, m3 = st.columns(3)
     m1.metric("扶養対象 合計（交通費抜）", f"¥{int(y_fuyo_total):,}")
     m2.metric("交通費 合計", f"¥{int(y_trans_total):,}")
-    m3.metric("年間 総支給額（交通費込）", f"¥{int(y_fuyo_total + y_trans_total):,}")
+    m3.metric("年間 合計（交通費込）", f"¥{int(y_fuyo_total + y_trans_total):,}")
 
     st.caption(
         f"交通費内訳：さしす ¥{int(y_trans_sashisu):,} ／ 京進 ¥{int(y_trans_kyoshin):,} ／ 東進 ¥{int(y_trans_toshin):,}"
@@ -534,43 +542,50 @@ with tab_summary:
     st.progress(min(1.0, max(0.0, y_fuyo_total / fuyo_limit)))
     st.caption(
         f"扶養上限まで残り：**¥{int(fuyo_rem):,}**\n\n"
-        f"内訳：さしす ¥{int(y_sashisu):,} ＋ 京進（特別手当込） ¥{int(y_kyoshin):,} ＋ 東進 ¥{int(y_toshin):,}"
+        f"内訳：\n"
+        f"・さしす（{target_year - 1}/12〜{target_year}/11稼働）：¥{int(y_sashisu):,}\n"
+        f"・京進（{target_year - 1}/12〜{target_year}/11稼働・特別手当込）：¥{int(y_kyoshin):,}\n"
+        f"・東進（{target_year}/01〜{target_year}/12稼働）：¥{int(y_toshin):,}"
     )
 
     # 雑所得上限ゲージ（東進単体）
     zatsu_limit = settings["zatsu_limit"]
     zatsu_rem = zatsu_limit - y_toshin
-    st.write(f"**業務委託（東進単体）** ¥{int(y_toshin):,} / 上限 ¥{int(zatsu_limit):,}")
+    st.write(f"**業務委託（東進単体：{target_year}/01〜{target_year}/12稼働）** ¥{int(y_toshin):,} / 上限 ¥{int(zatsu_limit):,}")
     st.progress(min(1.0, max(0.0, y_toshin / zatsu_limit)))
     st.caption(f"雑所得上限まで残り：**¥{int(zatsu_rem):,}**")
 
     st.divider()
-    st.markdown('<div class="section-header">月別集計</div>', unsafe_allow_html=True)
-    if not df_y.empty or not df_by.empty or not df_ay.empty:
-        df_y["ym"] = df_y["date"].astype(str).str.slice(0, 7)
-        m_logs = df_y.groupby("ym")[num_cols].sum().reset_index()
-        m_bonus = df_by.groupby("year_month")["amount"].sum().reset_index().rename(columns={"year_month": "ym", "amount": "特別手当"})
+    st.markdown(f'<div class="section-header">{target_year}年 月別集計（稼働月ベース）</div>', unsafe_allow_html=True)
+    df_y_cal = df_logs[df_logs["date"].astype(str).str.startswith(y_str)].copy()
+    df_by_cal = df_bonuses[df_bonuses["year_month"].astype(str).str.startswith(y_str)].copy()
+    df_ay_cal = df_adjs[df_adjs["year_month"].astype(str).str.startswith(y_str)].copy()
+
+    if not df_y_cal.empty or not df_by_cal.empty or not df_ay_cal.empty:
+        df_y_cal["ym"] = df_y_cal["date"].astype(str).str.slice(0, 7)
+        m_logs = df_y_cal.groupby("ym")[num_cols].sum().reset_index()
+        m_bonus = df_by_cal.groupby("year_month")["amount"].sum().reset_index().rename(columns={"year_month": "ym", "amount": "特別手当"})
 
         trans_emp_list = ["さしす（交通費）", "京進（交通費）", "東進（交通費）", "交通費"]
-        m_pay_adj = df_ay[~df_ay["employer"].isin(trans_emp_list)].groupby("year_month")["amount"].sum().reset_index().rename(columns={"year_month": "ym", "amount": "給料調整"})
-        m_trans_adj = df_ay[df_ay["employer"].isin(trans_emp_list)].groupby("year_month")["amount"].sum().reset_index().rename(columns={"year_month": "ym", "amount": "交通費調整"})
+        m_pay_adj = df_ay_cal[~df_ay_cal["employer"].isin(trans_emp_list)].groupby("year_month")["amount"].sum().reset_index().rename(columns={"year_month": "ym", "amount": "給料調整"})
+        m_trans_adj = df_ay_cal[df_ay_cal["employer"].isin(trans_emp_list)].groupby("year_month")["amount"].sum().reset_index().rename(columns={"year_month": "ym", "amount": "交通費調整"})
 
         m_all = pd.merge(m_logs, m_bonus, on="ym", how="outer")
         m_all = pd.merge(m_all, m_pay_adj, on="ym", how="outer")
         m_all = pd.merge(m_all, m_trans_adj, on="ym", how="outer").fillna(0).sort_values("ym")
 
         m_all["交通費計"] = m_all["sashisu_trans"] + m_all["kyoshin_trans"] + m_all["交通費調整"]
-        m_all["扶養対象計"] = m_all["sashisu_pay"] + m_all["kyoshin_pay"] + m_all["toshin_pay"] + m_all["特別手当"] + m_all["給料調整"]
-        m_all["総支給（交通費込）"] = m_all["扶養対象計"] + m_all["交通費計"]
+        m_all["稼働給料計"] = m_all["sashisu_pay"] + m_all["kyoshin_pay"] + m_all["toshin_pay"] + m_all["特別手当"] + m_all["給料調整"]
+        m_all["合計（交通費込）"] = m_all["稼働給料計"] + m_all["交通費計"]
 
-        disp_cols = ["ym", "sashisu_pay", "kyoshin_pay", "toshin_pay", "特別手当", "給料調整", "扶養対象計", "交通費計", "総支給（交通費込）"]
+        disp_cols = ["ym", "sashisu_pay", "kyoshin_pay", "toshin_pay", "特別手当", "給料調整", "稼働給料計", "交通費計", "合計（交通費込）"]
         m_disp = m_all[disp_cols].rename(columns={
-            "ym": "年月",
+            "ym": "稼働年月",
             "sashisu_pay": "さしす",
             "kyoshin_pay": "京進",
             "toshin_pay": "東進",
         })
-        st.dataframe(m_disp.set_index("年月").astype(int), use_container_width=True)
+        st.dataframe(m_disp.set_index("稼働年月").astype(int), use_container_width=True)
     else:
         st.info("表示するデータがありません。")
 
@@ -712,7 +727,6 @@ with tab_settings:
     st.markdown('<div class="section-header">東進 期間別単価設定（28日〜翌月27日）</div>', unsafe_allow_html=True)
     st.caption("年と期間を選ぶと、その期間に現在設定されている単価が表示されます。更新すると該当期間の入力済みデータも自動再計算されます。")
 
-    # デフォルトで現在の締め期間を選択状態にする
     cur_period_key = get_toshin_period_key(datetime.date.today().strftime("%Y-%m-%d"))
     cur_p_year = int(cur_period_key[:4])
     cur_p_label = cur_period_key[5:]
@@ -745,7 +759,6 @@ with tab_settings:
         in_te = tr3.number_input("模試（記述）単価（円）", min_value=0, value=cur_te, step=100, key=f"in_te_{target_period_key}")
 
         if st.form_submit_button("この期間の東進単価を保存・反映", type="primary"):
-            # 期間単価テーブルを更新
             if not df_toshin_rates.empty:
                 df_toshin_rates = df_toshin_rates[df_toshin_rates["period_key"] != target_period_key]
             new_rate_row = pd.DataFrame([{
@@ -757,7 +770,6 @@ with tab_settings:
             df_toshin_rates = pd.concat([df_toshin_rates, new_rate_row], ignore_index=True).sort_values("period_key")
             save_df("toshin_rates", df_toshin_rates)
 
-            # 該当期間内の既存ログも新単価で自動更新
             if not df_logs.empty:
                 updated_count = 0
                 for idx in df_logs.index:
