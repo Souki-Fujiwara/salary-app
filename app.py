@@ -9,111 +9,454 @@ from streamlit_calendar import calendar
 # --- ページ設定 ---
 st.set_page_config(page_title="給料管理", layout="centered")
 
-# --- カスタムCSS（フォント・モダンデザイン） ---
+# --- 全体デザイン（モダン・ミニマル・モバイル最適化） ---
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap');
 
-html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput, .stSelectbox, .stButton, .stTabs {
-    font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    letter-spacing: 0.01em;
+/* Streamlit標準の不要UIを非表示 */
+header[data-testid="stHeader"] {
+    background: transparent !important;
+    height: 0px !important;
+    visibility: hidden !important;
+}
+[data-testid="stToolbar"], #MainMenu, footer {
+    display: none !important;
+}
+
+/* ベース背景・フォント */
+.stApp {
+    background-color: #F3F5F9 !important;
+    color: #0F172A !important;
+}
+
+html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
+.stSelectbox, .stButton, .stTabs, input, button, select {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Hiragino Sans",
+                 "Hiragino Kaku Gothic ProN", "Plus Jakarta Sans", sans-serif !important;
+    -webkit-font-smoothing: antialiased;
 }
 
 .block-container {
-    padding-top: 2rem !important;
-    padding-bottom: 3rem !important;
-    max-width: 820px !important;
+    padding-top: 1.25rem !important;
+    padding-bottom: 3.5rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    max-width: 760px !important;
 }
 
+/* ヘッダータイトル */
+.app-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 0 0.15rem;
+}
 .app-title {
-    font-size: 1.75rem;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #0F172A;
+    letter-spacing: -0.03em;
+    line-height: 1.3;
+}
+.app-sub {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #64748B;
+    font-variant-numeric: tabular-nums;
+}
+
+/* タブ：iOSセグメントコントロール風（赤下線を完全消去） */
+.stTabs [data-baseweb="tab-list"] {
+    background-color: #E5E9F0;
+    padding: 4px;
+    border-radius: 13px;
+    gap: 2px;
+    border-bottom: none !important;
+    display: flex;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+.stTabs [data-baseweb="tab-highlight"],
+.stTabs [data-baseweb="tab-border"] {
+    display: none !important;
+}
+.stTabs [data-baseweb="tab"] {
+    flex: 1 1 0;
+    justify-content: center;
+    height: 2.35rem;
+    padding: 0 0.25rem !important;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #64748B;
+    border-radius: 9px !important;
+    border: none !important;
+    background: transparent;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+.stTabs [aria-selected="true"] {
+    background-color: #FFFFFF !important;
+    color: #0F172A !important;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+/* セクション見出し */
+.section-header {
+    font-size: 0.98rem;
     font-weight: 700;
     color: #0F172A;
-    letter-spacing: -0.02em;
-    margin-bottom: 0.25rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid #E2E8F0;
+    letter-spacing: -0.01em;
+    margin: 1.1rem 0 0.6rem 0.15rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
-
-.section-header {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #1E293B;
-    margin-top: 0.5rem;
-    margin-bottom: 0.75rem;
-    padding-left: 0.65rem;
-    border-left: 3px solid #1E293B;
+.section-header::before {
+    content: "";
+    display: inline-block;
+    width: 4px;
+    height: 1rem;
+    background-color: #0F172A;
+    border-radius: 99px;
 }
 
 .sub-header {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1E293B;
+    margin: 0.2rem 0 0.45rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.unit-pill {
+    font-size: 0.72rem;
     font-weight: 600;
-    color: #334155;
-    margin-top: 0.5rem;
-    margin-bottom: 0.4rem;
+    color: #475569;
+    background: #F1F5F9;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-variant-numeric: tabular-nums;
 }
 
-.stTabs [data-baseweb="tab-list"] {
-    gap: 0.5rem;
-    border-bottom: 1px solid #E2E8F0;
-}
-.stTabs [data-baseweb="tab"] {
-    height: 2.6rem;
-    padding: 0 0.9rem;
-    font-weight: 500;
-    font-size: 0.9rem;
-    color: #64748B;
-    border-radius: 6px 6px 0 0;
-}
-.stTabs [aria-selected="true"] {
-    color: #0F172A !important;
-    font-weight: 600 !important;
-    border-bottom: 2px solid #0F172A !important;
-}
-
-[data-testid="stMetric"] {
-    background-color: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 10px;
-    padding: 0.9rem 1rem;
-}
-[data-testid="stMetricLabel"] {
-    font-size: 0.8rem !important;
-    color: #64748B !important;
-    font-weight: 500 !important;
-}
-[data-testid="stMetricValue"] {
-    font-size: 1.35rem !important;
-    font-weight: 700 !important;
-    color: #0F172A !important;
-}
-
+/* 白カード（フォーム・エキスパンダー） */
 [data-testid="stForm"] {
-    background-color: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 12px;
-    padding: 1.25rem;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+    background-color: #FFFFFF !important;
+    border: 1px solid #E5E9F0 !important;
+    border-radius: 16px !important;
+    padding: 1.2rem 1.1rem !important;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03) !important;
 }
 
-.stButton > button[kind="primary"], [data-testid="stFormSubmitButton"] > button {
+[data-testid="stExpander"] {
+    background-color: #FFFFFF !important;
+    border: 1px solid #E5E9F0 !important;
+    border-radius: 14px !important;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.02);
+}
+
+/* 入力欄 */
+.stTextInput > div > div > input,
+.stNumberInput > div > div > input,
+.stDateInput > div > div > input,
+.stTimeInput > div > div > input,
+.stSelectbox > div > div {
+    background-color: #F8FAFC !important;
+    border-color: #E2E8F0 !important;
+    border-radius: 10px !important;
+    color: #0F172A !important;
+    font-size: 0.92rem !important;
+}
+.stTextInput > div > div > input:focus,
+.stNumberInput > div > div > input:focus {
+    border-color: #0F172A !important;
+    box-shadow: 0 0 0 1px #0F172A !important;
+}
+
+/* プライマリボタン（タップしやすい全幅ダークボタン） */
+.stButton > button[kind="primary"],
+[data-testid="stFormSubmitButton"] > button {
+    width: 100%;
     background-color: #0F172A !important;
     color: #FFFFFF !important;
     border: none !important;
-    border-radius: 8px !important;
-    font-weight: 500 !important;
-    padding: 0.5rem 1.25rem !important;
-    transition: background-color 0.15s ease;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    font-size: 0.92rem !important;
+    padding: 0.65rem 1.25rem !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12) !important;
+    transition: all 0.15s ease !important;
 }
-.stButton > button[kind="primary"]:hover, [data-testid="stFormSubmitButton"] > button:hover {
-    background-color: #334155 !important;
+.stButton > button[kind="primary"]:hover,
+[data-testid="stFormSubmitButton"] > button:hover {
+    background-color: #1E293B !important;
 }
 
-.stProgress > div > div > div > div {
-    background-color: #0F172A !important;
+/* サマリー用フィンテックカード */
+.hero-card {
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    color: #FFFFFF;
+    border-radius: 18px;
+    padding: 1.35rem 1.3rem;
+    margin-bottom: 0.85rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+.hero-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #94A3B8;
+    letter-spacing: 0.03em;
+}
+.hero-value {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0.2rem 0 0.75rem 0;
+    font-variant-numeric: tabular-nums;
+}
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.hero-sub-label {
+    font-size: 0.72rem;
+    color: #94A3B8;
+}
+.hero-sub-val {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #F8FAFC;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E9F0;
+    border-radius: 16px;
+    padding: 1.1rem 1.15rem;
+    margin-bottom: 0.85rem;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+}
+.stat-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+}
+.stat-title {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #0F172A;
+}
+.stat-ratio {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+    font-variant-numeric: tabular-nums;
+}
+.bar-track {
+    width: 100%;
+    height: 8px;
+    background: #E2E8F0;
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 0.65rem;
+}
+.bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.3s ease;
+}
+.stat-rem {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 0.45rem;
+    font-variant-numeric: tabular-nums;
+}
+.stat-detail {
+    font-size: 0.76rem;
+    color: #64748B;
+    line-height: 1.65;
+    font-variant-numeric: tabular-nums;
+}
+
+/* 選択日のサマリーバー */
+.day-pill-bar {
+    background: #FFFFFF;
+    border: 1px solid #E5E9F0;
+    border-radius: 12px;
+    padding: 0.65rem 0.9rem;
+    margin: 0.35rem 0 0.75rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    color: #334155;
+    font-variant-numeric: tabular-nums;
+}
+.day-pill-bar strong {
+    color: #0F172A;
+    font-size: 0.95rem;
+}
+
+/* iframe(カレンダー)の余白微調整 */
+iframe[title="streamlit_calendar.calendar"] {
+    border-radius: 18px !important;
 }
 </style>
 """, unsafe_allow_html=True)
+
+# --- カレンダー専用CSS（iframe内部に直接適用） ---
+CALENDAR_CSS = """
+.fc {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Hiragino Sans", sans-serif !important;
+    background: #FFFFFF !important;
+    border-radius: 18px !important;
+    padding: 14px 10px 10px 10px !important;
+    border: 1px solid #E5E9F0 !important;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
+}
+.fc-header-toolbar {
+    margin-bottom: 12px !important;
+    padding: 0 4px !important;
+}
+.fc .fc-toolbar-title {
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+    color: #0F172A !important;
+    letter-spacing: -0.02em !important;
+}
+/* デフォルトの赤いボタンをモノトーンに上書き */
+.fc .fc-button-primary {
+    background-color: #F1F5F9 !important;
+    border: none !important;
+    color: #1E293B !important;
+    border-radius: 9px !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    padding: 6px 10px !important;
+    box-shadow: none !important;
+    transition: background-color 0.15s ease !important;
+}
+.fc .fc-button-primary:hover,
+.fc .fc-button-primary:active,
+.fc .fc-button-primary:focus {
+    background-color: #E2E8F0 !important;
+    color: #0F172A !important;
+    box-shadow: none !important;
+}
+.fc .fc-button-primary:disabled {
+    background-color: #F8FAFC !important;
+    color: #94A3B8 !important;
+    opacity: 1 !important;
+}
+.fc .fc-button-group > .fc-button {
+    margin-left: 4px !important;
+    border-radius: 9px !important;
+}
+/* 格子線をすべて消してモダンな区切り線のみにする */
+.fc-theme-standard .fc-scrollgrid,
+.fc-theme-standard td,
+.fc-theme-standard th {
+    border: none !important;
+}
+.fc-col-header {
+    border-bottom: 1px solid #F1F5F9 !important;
+}
+.fc-col-header-cell {
+    padding: 4px 0 8px 0 !important;
+}
+.fc-col-header-cell-cushion {
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    color: #94A3B8 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    text-decoration: none !important;
+}
+.fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion {
+    color: #EF4444 !important;
+}
+.fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
+    color: #3B82F6 !important;
+}
+.fc-daygrid-body tr {
+    border-top: 1px solid #F1F5F9 !important;
+}
+.fc-daygrid-day-frame {
+    min-height: 54px !important;
+    padding: 4px 1px !important;
+    border-radius: 10px !important;
+}
+.fc-daygrid-day-top {
+    justify-content: center !important;
+    margin-bottom: 2px !important;
+}
+.fc-daygrid-day-number {
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    color: #1E293B !important;
+    width: 26px !important;
+    height: 26px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 999px !important;
+    padding: 0 !important;
+    text-decoration: none !important;
+    font-variant-numeric: tabular-nums !important;
+}
+.fc-day-sun .fc-daygrid-day-number {
+    color: #DC2626 !important;
+}
+.fc-day-sat .fc-daygrid-day-number {
+    color: #2563EB !important;
+}
+.fc-day-other .fc-daygrid-day-number {
+    color: #CBD5E1 !important;
+    font-weight: 500 !important;
+}
+/* 当日の黄色背景を消して黒丸バッジ化 */
+.fc-day-today {
+    background: transparent !important;
+}
+.fc-day-today .fc-daygrid-day-number {
+    background-color: #0F172A !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+}
+/* 金額バッジ */
+.fc-daygrid-event {
+    background-color: #EEF2FF !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 2px 2px !important;
+    margin: 1px 2px 0 2px !important;
+    text-align: center !important;
+}
+.fc-daygrid-event-harness {
+    margin-top: 1px !important;
+}
+.fc-event-title {
+    color: #3730A3 !important;
+    font-size: 0.64rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    font-variant-numeric: tabular-nums !important;
+}
+.fc-bg-event {
+    border-radius: 10px !important;
+    opacity: 0.55 !important;
+}
+"""
 
 # --- パスワード認証 ---
 def check_password():
@@ -122,14 +465,15 @@ def check_password():
     if st.session_state["authenticated"]:
         return True
 
-    st.markdown('<div class="app-title">給料管理</div>', unsafe_allow_html=True)
-    pwd = st.text_input("パスワード", type="password")
-    if st.button("ログイン", type="primary"):
-        if pwd == st.secrets["APP_PASSWORD"]:
-            st.session_state["authenticated"] = True
-            st.rerun()
-        else:
-            st.error("パスワードが一致しません")
+    st.markdown('<div class="app-header"><div class="app-title">給料管理</div></div>', unsafe_allow_html=True)
+    with st.form("login_form"):
+        pwd = st.text_input("パスワード", type="password", placeholder="パスワードを入力")
+        if st.form_submit_button("ログイン", type="primary"):
+            if pwd == st.secrets["APP_PASSWORD"]:
+                st.session_state["authenticated"] = True
+                st.rerun()
+            else:
+                st.error("パスワードが一致しません")
     return False
 
 if not check_password():
@@ -230,7 +574,6 @@ PERIOD_LABELS = [
 ]
 
 def get_toshin_period_key(date_str):
-    """日付文字列(YYYY-MM-DD)から東進の締め期間キー(例: 2026-1028〜1127)を返す"""
     dt = datetime.date.fromisoformat(str(date_str)[:10])
     if dt.day >= 28:
         start_y, start_m = dt.year, dt.month
@@ -292,13 +635,13 @@ def calc_sashisu_hours(start_t, end_t, break_min):
 
     return round(normal_min / 60, 2), round(late_min / 60, 2)
 
-# --- 年・月 独立選択ヘルパー（プルダウン ＋ 手打ち切替対応） ---
+# --- 年・月 独立選択ヘルパー ---
 def year_month_selector(prefix_key, label_prefix=""):
     today = datetime.date.today()
     y_opts = list(range(2024, 2036))
     m_opts = [f"{m:02d}" for m in range(1, 13)]
 
-    c1, c2, c3 = st.columns([2, 2, 1.3])
+    c1, c2, c3 = st.columns([2, 2, 1.4])
     manual = c3.checkbox("手打ち入力", key=f"{prefix_key}_manual")
     if manual:
         y_val = c1.number_input(f"{label_prefix}年", min_value=2020, max_value=2050, value=today.year, step=1, key=f"{prefix_key}_y_num")
@@ -310,22 +653,35 @@ def year_month_selector(prefix_key, label_prefix=""):
         m_sel = c2.selectbox(f"{label_prefix}月", m_opts, index=today.month - 1, key=f"{prefix_key}_m_sel")
         return f"{y_sel}-{m_sel}"
 
-# --- メイン画面 ---
-st.markdown('<div class="app-title">給料管理</div>', unsafe_allow_html=True)
+# --- メインヘッダー ---
+today_obj = datetime.date.today()
+st.markdown(
+    f'<div class="app-header"><div class="app-title">給料管理</div><div class="app-sub">{today_obj.strftime("%Y.%m.%d")}</div></div>',
+    unsafe_allow_html=True
+)
 
-current_year = datetime.date.today().year
+current_year = today_obj.year
 year_options = list(range(2024, 2036))
 default_year_idx = year_options.index(current_year) if current_year in year_options else 0
 
 tab_cal, tab_summary, tab_adj, tab_pdf, tab_settings = st.tabs([
-    "カレンダー", "集計・扶養", "手当・調整", "給料明細", "単価・上限設定"
+    "カレンダー", "集計", "調整・手当", "明細", "設定"
 ])
 
 # ==========================================
 # タブ1：カレンダー ＆ 日別入力
 # ==========================================
 with tab_cal:
-    events = []
+    if "selected_date" not in st.session_state:
+        st.session_state["selected_date"] = today_obj.strftime("%Y-%m-%d")
+
+    events = [
+        {
+            "start": st.session_state["selected_date"],
+            "display": "background",
+            "backgroundColor": "#C7D2FE",
+        }
+    ]
     if not df_logs.empty:
         for _, r in df_logs.iterrows():
             d = str(r["date"])
@@ -337,19 +693,19 @@ with tab_cal:
                 events.append({
                     "title": f"¥{int(day_total):,}",
                     "start": d,
-                    "color": "#1E293B"
                 })
 
     cal_options = {
         "initialView": "dayGridMonth",
-        "locale": "ja",
-        "headerToolbar": {"left": "prev,next today", "center": "title", "right": ""},
+        "locale": "en",
+        "headerToolbar": {"left": "title", "center": "", "right": "today prev,next"},
+        "buttonText": {"today": "今日"},
+        "titleFormat": {"year": "numeric", "month": "short"},
+        "fixedWeekCount": False,
+        "contentHeight": "auto",
         "selectable": True,
     }
-    cal_state = calendar(events=events, options=cal_options, key="shift_calendar")
-
-    if "selected_date" not in st.session_state:
-        st.session_state["selected_date"] = datetime.date.today().strftime("%Y-%m-%d")
+    cal_state = calendar(events=events, options=cal_options, custom_css=CALENDAR_CSS, key="shift_calendar")
 
     def parse_cal_date(raw_str):
         if not raw_str:
@@ -383,9 +739,10 @@ with tab_cal:
         parsed_date = parse_cal_date(clicked_raw)
         if parsed_date:
             st.session_state["selected_date"] = parsed_date
+            st.rerun()
 
     picked_date = st.date_input(
-        "対象日（カレンダー選択と連動）",
+        "対象日",
         value=datetime.date.fromisoformat(st.session_state["selected_date"])
     )
     if picked_date.strftime("%Y-%m-%d") != st.session_state["selected_date"]:
@@ -396,14 +753,25 @@ with tab_cal:
     t_period_key = get_toshin_period_key(sel_date)
     tn_unit, ts_unit, te_unit, is_custom_rate = get_toshin_units_for_period(t_period_key)
 
-    st.markdown(f'<div class="section-header">{sel_date} の勤務・工数入力</div>', unsafe_allow_html=True)
-
     existing = df_logs[df_logs["date"] == sel_date]
     row = existing.iloc[0] if not existing.empty else None
 
+    if row is not None:
+        cur_day_sum = int(float(row["sashisu_pay"] or 0) + float(row["kyoshin_pay"] or 0) + float(row["toshin_pay"] or 0))
+        cur_day_tr = int(float(row["sashisu_trans"] or 0) + float(row["kyoshin_trans"] or 0))
+        st.markdown(
+            f'<div class="day-pill-bar"><span>{sel_date} の登録額（交通費 ¥{cur_day_tr:,}）</span><strong>¥{cur_day_sum:,}</strong></div>',
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(f'<div class="section-header">{sel_date} の勤務入力</div>', unsafe_allow_html=True)
+
     with st.form("daily_form"):
         # 1. さしす
-        st.markdown(f'<div class="sub-header">さしす（時給 ¥{int(settings["sashisu_wage"]):,}）</div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="sub-header"><span>さしす</span><span class="unit-pill">時給 ¥{int(settings["sashisu_wage"]):,}</span></div>',
+            unsafe_allow_html=True
+        )
         use_sashisu = st.checkbox("出勤あり", value=(row is not None and float(row["sashisu_pay"] or 0) > 0))
         c1, c2, c3 = st.columns(3)
         def_start = datetime.datetime.strptime(row["sashisu_start"], "%H:%M").time() if (row is not None and row["sashisu_start"]) else datetime.time(17, 0)
@@ -417,7 +785,10 @@ with tab_cal:
         st.divider()
 
         # 2. 京進
-        st.markdown(f'<div class="sub-header">京進（1コマ ¥{int(settings["kyoshin_koma_wage"]):,}）</div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="sub-header"><span>京進</span><span class="unit-pill">1コマ ¥{int(settings["kyoshin_koma_wage"]):,}</span></div>',
+            unsafe_allow_html=True
+        )
         loc_options = ["なし", "弁天町", "野田阪神"]
         def_loc_idx = loc_options.index(row["kyoshin_loc"]) if (row is not None and row["kyoshin_loc"] in loc_options) else 0
         def_koma = int(row["kyoshin_koma"]) if (row is not None and row["kyoshin_koma"] != "") else 0
@@ -429,11 +800,12 @@ with tab_cal:
         st.divider()
 
         # 3. 東進
-        rate_note = "設定済単価" if is_custom_rate else "標準単価"
+        rate_note = "設定済" if is_custom_rate else "標準"
         st.markdown(
-            f'<div class="sub-header">東進（対象期間: {t_period_key} / {rate_note}: 通常 ¥{tn_unit:,}・短答 ¥{ts_unit:,}・記述 ¥{te_unit:,}）</div>',
+            f'<div class="sub-header"><span>東進</span><span class="unit-pill">{t_period_key}（{rate_note}）</span></div>',
             unsafe_allow_html=True
         )
+        st.caption(f"通常 ¥{tn_unit:,} ／ 短答 ¥{ts_unit:,} ／ 記述 ¥{te_unit:,}")
         t1, t2, t3 = st.columns(3)
         def_tn = float(row["toshin_normal_k"]) if (row is not None and row["toshin_normal_k"] != "") else 0.0
         def_ts = float(row["toshin_short_k"]) if (row is not None and row["toshin_short_k"] != "") else 0.0
@@ -482,7 +854,7 @@ with tab_cal:
             st.rerun()
 
 # ==========================================
-# タブ2：月別・年間集計 ＆ 扶養・雑所得ゲージ
+# タブ2：集計・扶養
 # ==========================================
 with tab_summary:
     target_year = st.selectbox("対象年（西暦）", year_options, index=default_year_idx, key="sum_year")
@@ -494,27 +866,24 @@ with tab_summary:
     df_bonuses["amount"] = pd.to_numeric(df_bonuses["amount"], errors="coerce").fillna(0)
     df_adjs["amount"] = pd.to_numeric(df_adjs["amount"], errors="coerce").fillna(0)
 
-    # 1. さしす・京進の扶養対象データ（前年12月 〜 当年11月 稼働分 ＝ 当年1月〜12月振込分）
+    # さしす・京進（前年12月〜当年11月 稼働分 ＝ 当年1月〜12月振込）
     df_logs_kyuyo = df_logs[df_logs["date"].apply(lambda d: is_kyuyo_fuyo_ym(d, target_year)).astype(bool)].copy()
     df_bonuses_fuyo = df_bonuses[df_bonuses["year_month"].apply(lambda ym: is_kyuyo_fuyo_ym(ym, target_year)).astype(bool)].copy()
     df_adjs_kyuyo = df_adjs[df_adjs["year_month"].apply(lambda ym: is_kyuyo_fuyo_ym(ym, target_year)).astype(bool)].copy()
 
-    # 2. 東進の扶養・雑所得対象データ（当年1月 〜 当年12月 稼働分 ＝ 当年2月〜翌年1月振込分）
+    # 東進（当年1月〜当年12月 稼働分 ＝ 当年2月〜翌年1月振込）
     df_logs_toshin = df_logs[df_logs["date"].apply(lambda d: is_toshin_fuyo_ym(d, target_year)).astype(bool)].copy()
     df_adjs_toshin = df_adjs[df_adjs["year_month"].apply(lambda ym: is_toshin_fuyo_ym(ym, target_year)).astype(bool)].copy()
 
-    # 調整額の集計（それぞれの対象期間で抽出）
     adj_sashisu = df_adjs_kyuyo[df_adjs_kyuyo["employer"].isin(["さしす", "さしす（給料）"])]["amount"].sum()
     adj_kyoshin = df_adjs_kyuyo[df_adjs_kyuyo["employer"].isin(["京進", "京進（給料）"])]["amount"].sum()
     adj_toshin = df_adjs_toshin[df_adjs_toshin["employer"].isin(["東進", "東進（報酬）"])]["amount"].sum()
 
-    # 交通費調整の集計（さしす・京進は前年12月〜当年11月、東進は当年1月〜12月）
     adj_trans_sashisu = df_adjs_kyuyo[df_adjs_kyuyo["employer"] == "さしす（交通費）"]["amount"].sum()
     adj_trans_kyoshin = df_adjs_kyuyo[df_adjs_kyuyo["employer"] == "京進（交通費）"]["amount"].sum()
     adj_trans_toshin = df_adjs_toshin[df_adjs_toshin["employer"] == "東進（交通費）"]["amount"].sum()
     adj_trans_other = df_adjs_kyuyo[df_adjs_kyuyo["employer"] == "交通費"]["amount"].sum()
 
-    # 年間合計
     y_sashisu = df_logs_kyuyo["sashisu_pay"].sum() + adj_sashisu
     y_kyoshin = df_logs_kyuyo["kyoshin_pay"].sum() + df_bonuses_fuyo["amount"].sum() + adj_kyoshin
     y_toshin = df_logs_toshin["toshin_pay"].sum() + adj_toshin
@@ -525,41 +894,67 @@ with tab_summary:
     y_trans_toshin = adj_trans_toshin
     y_trans_total = y_trans_sashisu + y_trans_kyoshin + y_trans_toshin + adj_trans_other
 
-    st.markdown(f'<div class="section-header">{target_year}年 年間サマリー</div>', unsafe_allow_html=True)
+    # ヒーローサマリーカード
+    st.markdown(f"""
+<div class="hero-card">
+  <div class="hero-label">{target_year}年 扶養対象 合計（交通費抜）</div>
+  <div class="hero-value">¥{int(y_fuyo_total):,}</div>
+  <div class="hero-grid">
+    <div>
+      <div class="hero-sub-label">交通費 合計</div>
+      <div class="hero-sub-val">¥{int(y_trans_total):,}</div>
+    </div>
+    <div>
+      <div class="hero-sub-label">年間 合計（交通費込）</div>
+      <div class="hero-sub-val">¥{int(y_fuyo_total + y_trans_total):,}</div>
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
-    m1, m2, m3 = st.columns(3)
-    m1.metric("扶養対象 合計（交通費抜）", f"¥{int(y_fuyo_total):,}")
-    m2.metric("交通費 合計", f"¥{int(y_trans_total):,}")
-    m3.metric("年間 合計（交通費込）", f"¥{int(y_fuyo_total + y_trans_total):,}")
-
-    st.caption(
-        f"交通費内訳：さしす ¥{int(y_trans_sashisu):,} ／ 京進 ¥{int(y_trans_kyoshin):,} ／ 東進 ¥{int(y_trans_toshin):,}"
-        + (f" ／ その他 ¥{int(adj_trans_other):,}" if adj_trans_other != 0 else "")
-    )
-
-    st.divider()
-
-    # 扶養上限ゲージ
-    fuyo_limit = settings["fuyo_limit"]
+    # 扶養上限ゲージカード
+    fuyo_limit = max(1, settings["fuyo_limit"])
     fuyo_rem = fuyo_limit - y_fuyo_total
-    st.write(f"**扶養上限チェック（さしす＋京進＋東進 合算）** ¥{int(y_fuyo_total):,} / 上限 ¥{int(fuyo_limit):,}")
-    st.progress(min(1.0, max(0.0, y_fuyo_total / fuyo_limit)))
-    st.caption(
-        f"扶養上限まで残り：**¥{int(fuyo_rem):,}**\n\n"
-        f"内訳：\n"
-        f"・さしす（{target_year - 1}/12〜{target_year}/11稼働）：¥{int(y_sashisu):,}\n"
-        f"・京進（{target_year - 1}/12〜{target_year}/11稼働・特別手当込）：¥{int(y_kyoshin):,}\n"
-        f"・東進（{target_year}/01〜{target_year}/12稼働）：¥{int(y_toshin):,}"
-    )
+    fuyo_pct = min(100.0, max(0.0, (y_fuyo_total / fuyo_limit) * 100))
+    fuyo_color = "#EF4444" if fuyo_pct >= 100 else ("#F59E0B" if fuyo_pct >= 85 else "#0F172A")
 
-    # 雑所得上限ゲージ（東進単体）
-    zatsu_limit = settings["zatsu_limit"]
+    st.markdown(f"""
+<div class="stat-card">
+  <div class="stat-top">
+    <span class="stat-title">扶養上限チェック（合算）</span>
+    <span class="stat-ratio">¥{int(y_fuyo_total):,} / ¥{int(fuyo_limit):,}</span>
+  </div>
+  <div class="bar-track"><div class="bar-fill" style="width:{fuyo_pct:.1f}%; background:{fuyo_color};"></div></div>
+  <div class="stat-rem">上限まで残り ¥{int(fuyo_rem):,}</div>
+  <div class="stat-detail">
+    さしす（{target_year - 1}/12〜{target_year}/11稼働）：¥{int(y_sashisu):,}<br>
+    京進（{target_year - 1}/12〜{target_year}/11稼働・手当込）：¥{int(y_kyoshin):,}<br>
+    東進（{target_year}/01〜{target_year}/12稼働）：¥{int(y_toshin):,}
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    # 東進 雑所得上限カード
+    zatsu_limit = max(1, settings["zatsu_limit"])
     zatsu_rem = zatsu_limit - y_toshin
-    st.write(f"**業務委託（東進単体：{target_year}/01〜{target_year}/12稼働）** ¥{int(y_toshin):,} / 上限 ¥{int(zatsu_limit):,}")
-    st.progress(min(1.0, max(0.0, y_toshin / zatsu_limit)))
-    st.caption(f"雑所得上限まで残り：**¥{int(zatsu_rem):,}**")
+    zatsu_pct = min(100.0, max(0.0, (y_toshin / zatsu_limit) * 100))
+    zatsu_color = "#EF4444" if zatsu_pct >= 100 else ("#F59E0B" if zatsu_pct >= 85 else "#3730A3")
 
-    st.divider()
+    extra_tr = f" ／ その他 ¥{int(adj_trans_other):,}" if adj_trans_other != 0 else ""
+    st.markdown(f"""
+<div class="stat-card">
+  <div class="stat-top">
+    <span class="stat-title">業務委託 雑所得（東進単体）</span>
+    <span class="stat-ratio">¥{int(y_toshin):,} / ¥{int(zatsu_limit):,}</span>
+  </div>
+  <div class="bar-track"><div class="bar-fill" style="width:{zatsu_pct:.1f}%; background:{zatsu_color};"></div></div>
+  <div class="stat-rem">上限まで残り ¥{int(zatsu_rem):,}</div>
+  <div class="stat-detail">
+    交通費内訳：さしす ¥{int(y_trans_sashisu):,} ／ 京進 ¥{int(y_trans_kyoshin):,} ／ 東進 ¥{int(y_trans_toshin):,}{extra_tr}
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
     st.markdown(f'<div class="section-header">{target_year}年 月別集計（稼働月ベース）</div>', unsafe_allow_html=True)
     df_y_cal = df_logs[df_logs["date"].astype(str).str.startswith(y_str)].copy()
     df_by_cal = df_bonuses[df_bonuses["year_month"].astype(str).str.startswith(y_str)].copy()
@@ -594,11 +989,11 @@ with tab_summary:
         st.info("表示するデータがありません。")
 
 # ==========================================
-# タブ3：手当・調整
+# タブ3：調整・手当
 # ==========================================
 with tab_adj:
     st.markdown('<div class="section-header">金額調整</div>', unsafe_allow_html=True)
-    st.caption("振込額との差額をプラスまたはマイナス（例: -150, 300）で入力します。交通費項目を選ぶと交通費合計にのみ反映されます。")
+    st.caption("振込額との差額をプラスまたはマイナスで入力します。交通費項目は交通費合計にのみ反映されます。")
 
     a_ym = year_month_selector("adj")
     with st.form("adj_form"):
@@ -621,8 +1016,6 @@ with tab_adj:
         disp_adjs = df_adjs.rename(columns={"year_month": "年月", "employer": "項目・勤務先", "amount": "金額", "memo": "メモ"})
         st.dataframe(disp_adjs, use_container_width=True)
 
-    st.divider()
-
     st.markdown('<div class="section-header">特別手当</div>', unsafe_allow_html=True)
     st.caption("京進の特別手当を登録します（扶養対象額に加算されます）。")
 
@@ -643,7 +1036,7 @@ with tab_adj:
         st.dataframe(disp_bonuses, use_container_width=True)
 
 # ==========================================
-# タブ4：給料明細PDFの保存・閲覧
+# タブ4：給料明細
 # ==========================================
 with tab_pdf:
     st.markdown('<div class="section-header">給料明細の登録</div>', unsafe_allow_html=True)
@@ -651,7 +1044,7 @@ with tab_pdf:
         p1, p2, p3 = st.columns(3)
         p_emp = p1.selectbox("勤務先", ["さしす", "京進", "東進"], key="pdf_emp")
         p_year = p2.selectbox("年（西暦）", year_options, index=default_year_idx, key="pdf_y")
-        p_month = p3.selectbox("月", [f"{m:02d}" for m in range(1, 13)], index=datetime.date.today().month - 1, key="pdf_m")
+        p_month = p3.selectbox("月", [f"{m:02d}" for m in range(1, 13)], index=today_obj.month - 1, key="pdf_m")
         uploaded_file = st.file_uploader("PDFファイルを選択", type=["pdf"])
 
         if st.form_submit_button("保存する", type="primary"):
@@ -683,7 +1076,6 @@ with tab_pdf:
             else:
                 st.warning("PDFファイルを選択してください。")
 
-    st.divider()
     st.markdown('<div class="section-header">保存済みの給料明細</div>', unsafe_allow_html=True)
     f1, f2 = st.columns(2)
     filter_year = f1.selectbox("年（西暦）", ["すべて"] + [str(y) for y in year_options], index=year_options.index(current_year) + 1 if current_year in year_options else 0)
@@ -725,13 +1117,13 @@ with tab_pdf:
         st.info("保存済みの給料明細はありません。")
 
 # ==========================================
-# タブ5：単価・交通費・上限設定
+# タブ5：設定
 # ==========================================
 with tab_settings:
     st.markdown('<div class="section-header">東進 期間別単価設定（28日〜翌月27日）</div>', unsafe_allow_html=True)
-    st.caption("年と期間を選ぶと、その期間に現在設定されている単価が表示されます。更新すると該当期間の入力済みデータも自動再計算されます。")
+    st.caption("年と期間を選ぶと現在の設定単価が表示されます。更新すると該当期間の既存データも自動再計算されます。")
 
-    cur_period_key = get_toshin_period_key(datetime.date.today().strftime("%Y-%m-%d"))
+    cur_period_key = get_toshin_period_key(today_obj.strftime("%Y-%m-%d"))
     cur_p_year = int(cur_period_key[:4])
     cur_p_label = cur_period_key[5:]
 
@@ -753,14 +1145,17 @@ with tab_settings:
     range_desc = format_period_range_desc(sel_t_year, sel_t_label)
     cur_tn, cur_ts, cur_te, has_saved_rate = get_toshin_units_for_period(target_period_key)
 
-    status_badge = "登録済みの単価を表示中" if has_saved_rate else "未登録（標準単価を表示中）"
-    st.info(f"対象期間：**{range_desc}** ｜ ステータス：{status_badge}")
+    status_badge = "設定済単価" if has_saved_rate else "標準単価（未設定）"
+    st.markdown(
+        f'<div class="day-pill-bar"><span>{range_desc}</span><span class="unit-pill">{status_badge}</span></div>',
+        unsafe_allow_html=True
+    )
 
     with st.form("toshin_period_rate_form"):
         tr1, tr2, tr3 = st.columns(3)
-        in_tn = tr1.number_input("通常採点 単価（円）", min_value=0, value=cur_tn, step=100, key=f"in_tn_{target_period_key}")
-        in_ts = tr2.number_input("模試（短答）単価（円）", min_value=0, value=cur_ts, step=100, key=f"in_ts_{target_period_key}")
-        in_te = tr3.number_input("模試（記述）単価（円）", min_value=0, value=cur_te, step=100, key=f"in_te_{target_period_key}")
+        in_tn = tr1.number_input("通常採点（円）", min_value=0, value=cur_tn, step=100, key=f"in_tn_{target_period_key}")
+        in_ts = tr2.number_input("模試・短答（円）", min_value=0, value=cur_ts, step=100, key=f"in_ts_{target_period_key}")
+        in_te = tr3.number_input("模試・記述（円）", min_value=0, value=cur_te, step=100, key=f"in_te_{target_period_key}")
 
         if st.form_submit_button("この期間の東進単価を保存・反映", type="primary"):
             if not df_toshin_rates.empty:
@@ -787,32 +1182,33 @@ with tab_settings:
                 if updated_count > 0:
                     save_df("logs", df_logs)
 
-            st.success(f"{range_desc} の東進単価を保存し、データを更新しました。")
+            st.success(f"{range_desc} の東進単価を保存しました。")
             st.rerun()
 
-    st.divider()
-
-    st.markdown('<div class="section-header">基本時給・交通費・年間上限の設定</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">基本時給・交通費・年間上限</div>', unsafe_allow_html=True)
     with st.form("settings_main_form"):
         new_settings = {}
-        st.markdown('<div class="sub-header">さしす</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sub-header"><span>さしす</span></div>', unsafe_allow_html=True)
         sc1, sc2 = st.columns(2)
         new_settings["sashisu_wage"] = sc1.number_input("時給（円）", value=int(settings["sashisu_wage"]), step=10)
         new_settings["sashisu_trans"] = sc2.number_input("往復交通費（円）", value=int(settings["sashisu_trans"]), step=10)
 
-        st.markdown('<div class="sub-header">京進</div>', unsafe_allow_html=True)
+        st.divider()
+        st.markdown('<div class="sub-header"><span>京進</span></div>', unsafe_allow_html=True)
         kc1, kc2, kc3 = st.columns(3)
         new_settings["kyoshin_koma_wage"] = kc1.number_input("1コマ給（円）", value=int(settings["kyoshin_koma_wage"]), step=10)
         new_settings["kyoshin_trans_benten"] = kc2.number_input("弁天町 交通費（円）", value=int(settings["kyoshin_trans_benten"]), step=10)
         new_settings["kyoshin_trans_noda"] = kc3.number_input("野田阪神 交通費（円）", value=int(settings["kyoshin_trans_noda"]), step=10)
 
-        st.markdown('<div class="sub-header">東進 標準デフォルト単価（未設定期間用）</div>', unsafe_allow_html=True)
+        st.divider()
+        st.markdown('<div class="sub-header"><span>東進 標準単価（未設定期間用）</span></div>', unsafe_allow_html=True)
         tc1, tc2, tc3 = st.columns(3)
-        new_settings["toshin_normal_unit"] = tc1.number_input("通常採点 標準単価（円）", value=int(settings["toshin_normal_unit"]), step=100)
-        new_settings["toshin_short_unit"] = tc2.number_input("模試（短答）標準単価（円）", value=int(settings["toshin_short_unit"]), step=100)
-        new_settings["toshin_essay_unit"] = tc3.number_input("模試（記述）標準単価（円）", value=int(settings["toshin_essay_unit"]), step=100)
+        new_settings["toshin_normal_unit"] = tc1.number_input("通常採点（円）", value=int(settings["toshin_normal_unit"]), step=100)
+        new_settings["toshin_short_unit"] = tc2.number_input("模試・短答（円）", value=int(settings["toshin_short_unit"]), step=100)
+        new_settings["toshin_essay_unit"] = tc3.number_input("模試・記述（円）", value=int(settings["toshin_essay_unit"]), step=100)
 
-        st.markdown('<div class="sub-header">年間上限設定</div>', unsafe_allow_html=True)
+        st.divider()
+        st.markdown('<div class="sub-header"><span>年間上限</span></div>', unsafe_allow_html=True)
         lc1, lc2 = st.columns(2)
         new_settings["fuyo_limit"] = lc1.number_input("扶養上限（円）", value=int(settings["fuyo_limit"]), step=10000)
         new_settings["zatsu_limit"] = lc2.number_input("業務委託 雑所得上限（円）", value=int(settings["zatsu_limit"]), step=10000)
