@@ -159,7 +159,11 @@ def load_df(sheet_name, columns):
     data = ws.get_all_records()
     if not data:
         return pd.DataFrame(columns=columns)
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+    for col in columns:
+        if col not in df.columns:
+            df[col] = ""
+    return df
 
 def save_df(sheet_name, df):
     sh = get_spreadsheet()
@@ -491,13 +495,13 @@ with tab_summary:
     df_adjs["amount"] = pd.to_numeric(df_adjs["amount"], errors="coerce").fillna(0)
 
     # 1. さしす・京進の扶養対象データ（前年12月 〜 当年11月 稼働分 ＝ 当年1月〜12月振込分）
-    df_logs_kyuyo = df_logs[df_logs["date"].apply(lambda d: is_kyuyo_fuyo_ym(d, target_year))].copy()
-    df_bonuses_fuyo = df_bonuses[df_bonuses["year_month"].apply(lambda ym: is_kyuyo_fuyo_ym(ym, target_year))].copy()
-    df_adjs_kyuyo = df_adjs[df_adjs["year_month"].apply(lambda ym: is_kyuyo_fuyo_ym(ym, target_year))].copy()
+    df_logs_kyuyo = df_logs[df_logs["date"].apply(lambda d: is_kyuyo_fuyo_ym(d, target_year)).astype(bool)].copy()
+    df_bonuses_fuyo = df_bonuses[df_bonuses["year_month"].apply(lambda ym: is_kyuyo_fuyo_ym(ym, target_year)).astype(bool)].copy()
+    df_adjs_kyuyo = df_adjs[df_adjs["year_month"].apply(lambda ym: is_kyuyo_fuyo_ym(ym, target_year)).astype(bool)].copy()
 
     # 2. 東進の扶養・雑所得対象データ（当年1月 〜 当年12月 稼働分 ＝ 当年2月〜翌年1月振込分）
-    df_logs_toshin = df_logs[df_logs["date"].apply(lambda d: is_toshin_fuyo_ym(d, target_year))].copy()
-    df_adjs_toshin = df_adjs[df_adjs["year_month"].apply(lambda ym: is_toshin_fuyo_ym(ym, target_year))].copy()
+    df_logs_toshin = df_logs[df_logs["date"].apply(lambda d: is_toshin_fuyo_ym(d, target_year)).astype(bool)].copy()
+    df_adjs_toshin = df_adjs[df_adjs["year_month"].apply(lambda ym: is_toshin_fuyo_ym(ym, target_year)).astype(bool)].copy()
 
     # 調整額の集計（それぞれの対象期間で抽出）
     adj_sashisu = df_adjs_kyuyo[df_adjs_kyuyo["employer"].isin(["さしす", "さしす（給料）"])]["amount"].sum()
