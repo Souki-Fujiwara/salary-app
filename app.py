@@ -61,7 +61,7 @@ def save_df(sheet_name, df):
     ws = sh.worksheet(sheet_name)
     ws.clear()
     ws.update([df.columns.values.tolist()] + df.fillna("").values.tolist())
-    st.cache_data.clear()  # 保存したときだけキャッシュを更新
+    st.cache_data.clear()
 
 # --- データ読み込み ---
 LOG_COLS = [
@@ -191,10 +191,49 @@ with tab_cal:
     if "selected_date" not in st.session_state:
         st.session_state["selected_date"] = datetime.date.today().strftime("%Y-%m-%d")
 
-    if cal_state.get("dateClick"):
-        st.session_state["selected_date"] = cal_state["dateClick"]["dateStr"][:10]
-    elif cal_state.get("eventClick"):
-        st.session_state["selected_date"] = cal_state["eventClick"]["event"]["start"][:10]
+    # UTC文字列を日本時間(JST)の日付文字列に補正する関数
+    def parse_cal_date(raw_str):
+        if not raw_str:
+            return None
+        s = str(raw_str)
+        if s.endswith("Z") or "+00:00" in s:
+            try:
+                dt_utc = datetime.datetime.fromisoformat(s.replace("Z", "+00:00"))
+                dt_jst = dt_utc + datetime.timedelta(hours=9)
+                return dt_jst.strftime("%Y-%m-%d")
+            except Exception:
+                pass
+        return s[:10]
+
+    # カレンダーのタップ・選択イベントを安全に取得
+    clicked_raw = None
+    cal_event_obj = None
+    if isinstance(cal_state, dict):
+        if cal_state.get("dateClick"):
+            cal_event_obj = cal_state["dateClick"]
+            clicked_raw = cal_event_obj.get("dateStr") or cal_event_obj.get("date")
+        elif cal_state.get("select"):
+            cal_event_obj = cal_state["select"]
+            clicked_raw = cal_event_obj.get("startStr") or cal_event_obj.get("start")
+        elif cal_state.get("eventClick"):
+            cal_event_obj = cal_state["eventClick"].get("event", {})
+            clicked_raw = cal_event_obj.get("startStr") or cal_event_obj.get("start")
+
+    cal_sig = str(cal_event_obj) if cal_event_obj else ""
+    if cal_sig and cal_sig != st.session_state.get("last_cal_sig"):
+        st.session_state["last_cal_sig"] = cal_sig
+        parsed_date = parse_cal_date(clicked_raw)
+        if parsed_date:
+            st.session_state["selected_date"] = parsed_date
+
+    # 直接日付を選べるピッカー（カレンダーのタップとも連動）
+    picked_date = st.date_input(
+        "📅 入力する日付（カレンダーをタップしても切り替わります）",
+        value=datetime.date.fromisoformat(st.session_state["selected_date"])
+    )
+    if picked_date.strftime("%Y-%m-%d") != st.session_state["selected_date"]:
+        st.session_state["selected_date"] = picked_date.strftime("%Y-%m-%d")
+        st.rerun()
 
     sel_date = st.session_state["selected_date"]
     st.subheader(f"📝 {sel_date} のシフト・工数入力")
