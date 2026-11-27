@@ -9,10 +9,10 @@ from streamlit_calendar import calendar
 # --- ページ設定 ---
 st.set_page_config(page_title="給料管理", layout="centered")
 
-# --- 全体デザイン（モダン・ミニマル・モバイル最適化） ---
+# --- 全体デザイン（OLEDダーク・ミニマル・モバイル最適化） ---
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 /* Streamlit標準の不要UIを非表示 */
 header[data-testid="stHeader"] {
@@ -24,10 +24,10 @@ header[data-testid="stHeader"] {
     display: none !important;
 }
 
-/* ベース背景・フォント */
+/* ベース背景・文字色 */
 .stApp {
-    background-color: #F3F5F9 !important;
-    color: #0F172A !important;
+    background-color: #09090B !important;
+    color: #F4F4F5 !important;
 }
 
 html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
@@ -45,6 +45,23 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
     max-width: 760px !important;
 }
 
+/* ウィジェットラベル・キャプションの視認性を確実に確保 */
+[data-testid="stWidgetLabel"] p,
+.stCheckbox label span,
+.stCheckbox label p {
+    color: #D4D4D8 !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+}
+[data-testid="stCaptionContainer"] p {
+    color: #A1A1AA !important;
+    font-size: 0.78rem !important;
+}
+hr {
+    border-color: #232630 !important;
+    margin: 0.9rem 0 !important;
+}
+
 /* ヘッダータイトル */
 .app-header {
     display: flex;
@@ -56,24 +73,24 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
 .app-title {
     font-size: 1.55rem;
     font-weight: 800;
-    color: #0F172A;
+    color: #FAFAFA;
     letter-spacing: -0.03em;
     line-height: 1.3;
 }
 .app-sub {
     font-size: 0.78rem;
     font-weight: 600;
-    color: #64748B;
+    color: #71717A;
     font-variant-numeric: tabular-nums;
 }
 
-/* タブ：iOSセグメントコントロール風（赤下線を完全消去） */
+/* タブ：ダークセグメントコントロール */
 .stTabs [data-baseweb="tab-list"] {
-    background-color: #E5E9F0;
+    background-color: #13151B;
+    border: 1px solid #232630;
     padding: 4px;
     border-radius: 13px;
     gap: 2px;
-    border-bottom: none !important;
     display: flex;
     width: 100%;
     margin-bottom: 1rem;
@@ -89,7 +106,7 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
     padding: 0 0.25rem !important;
     font-weight: 600;
     font-size: 0.8rem;
-    color: #64748B;
+    color: #71717A !important;
     border-radius: 9px !important;
     border: none !important;
     background: transparent;
@@ -97,16 +114,16 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
     transition: all 0.15s ease;
 }
 .stTabs [aria-selected="true"] {
-    background-color: #FFFFFF !important;
-    color: #0F172A !important;
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+    background-color: #272B36 !important;
+    color: #FAFAFA !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 /* セクション見出し */
 .section-header {
-    font-size: 0.98rem;
+    font-size: 0.96rem;
     font-weight: 700;
-    color: #0F172A;
+    color: #FAFAFA;
     letter-spacing: -0.01em;
     margin: 1.1rem 0 0.6rem 0.15rem;
     display: flex;
@@ -116,16 +133,16 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
 .section-header::before {
     content: "";
     display: inline-block;
-    width: 4px;
+    width: 3px;
     height: 1rem;
-    background-color: #0F172A;
+    background-color: #34D399;
     border-radius: 99px;
 }
 
 .sub-header {
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     font-weight: 700;
-    color: #1E293B;
+    color: #F4F4F5;
     margin: 0.2rem 0 0.45rem 0;
     display: flex;
     align-items: center;
@@ -134,75 +151,95 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
 .unit-pill {
     font-size: 0.72rem;
     font-weight: 600;
-    color: #475569;
-    background: #F1F5F9;
-    padding: 2px 8px;
+    color: #A1A1AA;
+    background: #1E212B;
+    border: 1px solid #2C303D;
+    padding: 2px 9px;
     border-radius: 99px;
     font-variant-numeric: tabular-nums;
 }
 
-/* 白カード（フォーム・エキスパンダー） */
+/* ダークカード（フォーム・エキスパンダー） */
 [data-testid="stForm"] {
-    background-color: #FFFFFF !important;
-    border: 1px solid #E5E9F0 !important;
+    background-color: #13151B !important;
+    border: 1px solid #232630 !important;
     border-radius: 16px !important;
     padding: 1.2rem 1.1rem !important;
-    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
 }
 
 [data-testid="stExpander"] {
-    background-color: #FFFFFF !important;
-    border: 1px solid #E5E9F0 !important;
+    background-color: #13151B !important;
+    border: 1px solid #232630 !important;
     border-radius: 14px !important;
     overflow: hidden;
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.02);
+}
+[data-testid="stExpander"] summary {
+    color: #F4F4F5 !important;
+    font-weight: 600 !important;
 }
 
 /* 入力欄 */
 .stTextInput > div > div > input,
 .stNumberInput > div > div > input,
 .stDateInput > div > div > input,
-.stTimeInput > div > div > input,
-.stSelectbox > div > div {
-    background-color: #F8FAFC !important;
-    border-color: #E2E8F0 !important;
+.stTimeInput > div > div > input {
+    background-color: #1B1E27 !important;
+    border-color: #2D313F !important;
     border-radius: 10px !important;
-    color: #0F172A !important;
+    color: #FAFAFA !important;
     font-size: 0.92rem !important;
 }
-.stTextInput > div > div > input:focus,
-.stNumberInput > div > div > input:focus {
-    border-color: #0F172A !important;
-    box-shadow: 0 0 0 1px #0F172A !important;
+.stSelectbox > div > div {
+    background-color: #1B1E27 !important;
+    border-color: #2D313F !important;
+    border-radius: 10px !important;
+    color: #FAFAFA !important;
+}
+.stNumberInput button {
+    background-color: #232733 !important;
+    color: #E4E4E7 !important;
+    border-color: #2D313F !important;
 }
 
-/* プライマリボタン（タップしやすい全幅ダークボタン） */
+/* プライマリボタン（ダーク画面に映えるハイコントラスト白ボタン） */
 .stButton > button[kind="primary"],
 [data-testid="stFormSubmitButton"] > button {
     width: 100%;
-    background-color: #0F172A !important;
-    color: #FFFFFF !important;
+    background-color: #FAFAFA !important;
+    color: #09090B !important;
     border: none !important;
     border-radius: 12px !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     font-size: 0.92rem !important;
     padding: 0.65rem 1.25rem !important;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12) !important;
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.08) !important;
     transition: all 0.15s ease !important;
 }
 .stButton > button[kind="primary"]:hover,
 [data-testid="stFormSubmitButton"] > button:hover {
-    background-color: #1E293B !important;
+    background-color: #E4E4E7 !important;
 }
 
-/* サマリー用フィンテックカード */
+/* ダウンロード・削除など通常ボタン */
+.stDownloadButton > button,
+.stButton > button:not([kind="primary"]) {
+    background-color: #1E212B !important;
+    color: #F4F4F5 !important;
+    border: 1px solid #2E3240 !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+}
+
+/* サマリー用ダークフィンテックカード */
 .hero-card {
-    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-    color: #FFFFFF;
+    background: linear-gradient(145deg, #181C26 0%, #101218 100%);
+    color: #FAFAFA;
+    border: 1px solid #292E3D;
     border-radius: 18px;
     padding: 1.35rem 1.3rem;
     margin-bottom: 0.85rem;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 .hero-label {
     font-size: 0.76rem;
@@ -211,10 +248,11 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
     letter-spacing: 0.03em;
 }
 .hero-value {
-    font-size: 2rem;
+    font-size: 2.05rem;
     font-weight: 800;
     letter-spacing: -0.03em;
-    margin: 0.2rem 0 0.75rem 0;
+    margin: 0.2rem 0 0.8rem 0;
+    color: #FFFFFF;
     font-variant-numeric: tabular-nums;
 }
 .hero-grid {
@@ -222,7 +260,7 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
     padding-top: 0.85rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 .hero-sub-label {
     font-size: 0.72rem;
@@ -231,40 +269,40 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
 .hero-sub-val {
     font-size: 1.05rem;
     font-weight: 700;
-    color: #F8FAFC;
+    color: #E2E8F0;
     margin-top: 2px;
     font-variant-numeric: tabular-nums;
 }
 
 .stat-card {
-    background: #FFFFFF;
-    border: 1px solid #E5E9F0;
+    background: #13151B;
+    border: 1px solid #232630;
     border-radius: 16px;
     padding: 1.1rem 1.15rem;
     margin-bottom: 0.85rem;
-    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 .stat-top {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.55rem;
 }
 .stat-title {
     font-size: 0.86rem;
     font-weight: 700;
-    color: #0F172A;
+    color: #FAFAFA;
 }
 .stat-ratio {
     font-size: 0.8rem;
     font-weight: 600;
-    color: #475569;
+    color: #A1A1AA;
     font-variant-numeric: tabular-nums;
 }
 .bar-track {
     width: 100%;
     height: 8px;
-    background: #E2E8F0;
+    background: #232630;
     border-radius: 99px;
     overflow: hidden;
     margin-bottom: 0.65rem;
@@ -275,23 +313,23 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
     transition: width 0.3s ease;
 }
 .stat-rem {
-    font-size: 0.84rem;
+    font-size: 0.86rem;
     font-weight: 700;
-    color: #0F172A;
+    color: #FAFAFA;
     margin-bottom: 0.45rem;
     font-variant-numeric: tabular-nums;
 }
 .stat-detail {
     font-size: 0.76rem;
-    color: #64748B;
+    color: #94A3B8;
     line-height: 1.65;
     font-variant-numeric: tabular-nums;
 }
 
-/* 選択日のサマリーバー */
+/* 選択日・期間ステータスバー */
 .day-pill-bar {
-    background: #FFFFFF;
-    border: 1px solid #E5E9F0;
+    background: #13151B;
+    border: 1px solid #232630;
     border-radius: 12px;
     padding: 0.65rem 0.9rem;
     margin: 0.35rem 0 0.75rem 0;
@@ -299,30 +337,34 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
     justify-content: space-between;
     align-items: center;
     font-size: 0.82rem;
-    color: #334155;
+    color: #A1A1AA;
     font-variant-numeric: tabular-nums;
 }
 .day-pill-bar strong {
-    color: #0F172A;
-    font-size: 0.95rem;
+    color: #34D399;
+    font-size: 0.98rem;
 }
 
-/* iframe(カレンダー)の余白微調整 */
+/* カレンダーiframeの角丸 */
 iframe[title="streamlit_calendar.calendar"] {
     border-radius: 18px !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# --- カレンダー専用CSS（iframe内部に直接適用） ---
+# --- カレンダー専用CSS（ダークモード・iframe内部に直接適用） ---
 CALENDAR_CSS = """
+html, body {
+    background-color: #09090B !important;
+}
 .fc {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Hiragino Sans", sans-serif !important;
-    background: #FFFFFF !important;
+    background: #13151B !important;
     border-radius: 18px !important;
     padding: 14px 10px 10px 10px !important;
-    border: 1px solid #E5E9F0 !important;
-    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
+    border: 1px solid #232630 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+    color: #F4F4F5 !important;
 }
 .fc-header-toolbar {
     margin-bottom: 12px !important;
@@ -331,45 +373,46 @@ CALENDAR_CSS = """
 .fc .fc-toolbar-title {
     font-size: 1.05rem !important;
     font-weight: 800 !important;
-    color: #0F172A !important;
+    color: #FAFAFA !important;
     letter-spacing: -0.02em !important;
 }
-/* デフォルトの赤いボタンをモノトーンに上書き */
+/* モノトーンのダークナビゲーションボタン */
 .fc .fc-button-primary {
-    background-color: #F1F5F9 !important;
-    border: none !important;
-    color: #1E293B !important;
+    background-color: #1E212B !important;
+    border: 1px solid #2C303D !important;
+    color: #E4E4E7 !important;
     border-radius: 9px !important;
     font-size: 0.76rem !important;
     font-weight: 700 !important;
-    padding: 6px 10px !important;
+    padding: 5px 10px !important;
     box-shadow: none !important;
     transition: background-color 0.15s ease !important;
 }
 .fc .fc-button-primary:hover,
 .fc .fc-button-primary:active,
 .fc .fc-button-primary:focus {
-    background-color: #E2E8F0 !important;
-    color: #0F172A !important;
+    background-color: #2B303E !important;
+    color: #FFFFFF !important;
     box-shadow: none !important;
 }
 .fc .fc-button-primary:disabled {
-    background-color: #F8FAFC !important;
-    color: #94A3B8 !important;
+    background-color: #181A22 !important;
+    color: #52525B !important;
+    border-color: #232630 !important;
     opacity: 1 !important;
 }
 .fc .fc-button-group > .fc-button {
     margin-left: 4px !important;
     border-radius: 9px !important;
 }
-/* 格子線をすべて消してモダンな区切り線のみにする */
+/* 格子線を消して極細のダーク区切り線のみにする */
 .fc-theme-standard .fc-scrollgrid,
 .fc-theme-standard td,
 .fc-theme-standard th {
     border: none !important;
 }
 .fc-col-header {
-    border-bottom: 1px solid #F1F5F9 !important;
+    border-bottom: 1px solid #1F222C !important;
 }
 .fc-col-header-cell {
     padding: 4px 0 8px 0 !important;
@@ -377,19 +420,19 @@ CALENDAR_CSS = """
 .fc-col-header-cell-cushion {
     font-size: 0.7rem !important;
     font-weight: 700 !important;
-    color: #94A3B8 !important;
+    color: #71717A !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
     text-decoration: none !important;
 }
 .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion {
-    color: #EF4444 !important;
+    color: #F87171 !important;
 }
 .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
-    color: #3B82F6 !important;
+    color: #60A5FA !important;
 }
 .fc-daygrid-body tr {
-    border-top: 1px solid #F1F5F9 !important;
+    border-top: 1px solid #1C1F28 !important;
 }
 .fc-daygrid-day-frame {
     min-height: 54px !important;
@@ -403,7 +446,7 @@ CALENDAR_CSS = """
 .fc-daygrid-day-number {
     font-size: 0.82rem !important;
     font-weight: 600 !important;
-    color: #1E293B !important;
+    color: #E4E4E7 !important;
     width: 26px !important;
     height: 26px !important;
     display: flex !important;
@@ -415,30 +458,30 @@ CALENDAR_CSS = """
     font-variant-numeric: tabular-nums !important;
 }
 .fc-day-sun .fc-daygrid-day-number {
-    color: #DC2626 !important;
+    color: #F87171 !important;
 }
 .fc-day-sat .fc-daygrid-day-number {
-    color: #2563EB !important;
+    color: #60A5FA !important;
 }
 .fc-day-other .fc-daygrid-day-number {
-    color: #CBD5E1 !important;
+    color: #3F3F46 !important;
     font-weight: 500 !important;
 }
-/* 当日の黄色背景を消して黒丸バッジ化 */
+/* 当日：白丸バッジ */
 .fc-day-today {
     background: transparent !important;
 }
 .fc-day-today .fc-daygrid-day-number {
-    background-color: #0F172A !important;
-    color: #FFFFFF !important;
-    font-weight: 700 !important;
+    background-color: #FAFAFA !important;
+    color: #09090B !important;
+    font-weight: 800 !important;
 }
-/* 金額バッジ */
+/* 金額バッジ：ダーク画面で映えるエメラルド */
 .fc-daygrid-event {
-    background-color: #EEF2FF !important;
-    border: none !important;
+    background-color: rgba(16, 185, 129, 0.16) !important;
+    border: 1px solid rgba(52, 211, 153, 0.25) !important;
     border-radius: 6px !important;
-    padding: 2px 2px !important;
+    padding: 1px 2px !important;
     margin: 1px 2px 0 2px !important;
     text-align: center !important;
 }
@@ -446,15 +489,16 @@ CALENDAR_CSS = """
     margin-top: 1px !important;
 }
 .fc-event-title {
-    color: #3730A3 !important;
-    font-size: 0.64rem !important;
+    color: #34D399 !important;
+    font-size: 0.63rem !important;
     font-weight: 700 !important;
     letter-spacing: -0.02em !important;
     font-variant-numeric: tabular-nums !important;
 }
+/* 選択中の日付ハイライト */
 .fc-bg-event {
     border-radius: 10px !important;
-    opacity: 0.55 !important;
+    opacity: 0.9 !important;
 }
 """
 
@@ -679,7 +723,7 @@ with tab_cal:
         {
             "start": st.session_state["selected_date"],
             "display": "background",
-            "backgroundColor": "#C7D2FE",
+            "backgroundColor": "#272C3D",
         }
     ]
     if not df_logs.empty:
@@ -916,7 +960,7 @@ with tab_summary:
     fuyo_limit = max(1, settings["fuyo_limit"])
     fuyo_rem = fuyo_limit - y_fuyo_total
     fuyo_pct = min(100.0, max(0.0, (y_fuyo_total / fuyo_limit) * 100))
-    fuyo_color = "#EF4444" if fuyo_pct >= 100 else ("#F59E0B" if fuyo_pct >= 85 else "#0F172A")
+    fuyo_color = "#EF4444" if fuyo_pct >= 100 else ("#F59E0B" if fuyo_pct >= 85 else "#34D399")
 
     st.markdown(f"""
 <div class="stat-card">
@@ -938,7 +982,7 @@ with tab_summary:
     zatsu_limit = max(1, settings["zatsu_limit"])
     zatsu_rem = zatsu_limit - y_toshin
     zatsu_pct = min(100.0, max(0.0, (y_toshin / zatsu_limit) * 100))
-    zatsu_color = "#EF4444" if zatsu_pct >= 100 else ("#F59E0B" if zatsu_pct >= 85 else "#3730A3")
+    zatsu_color = "#EF4444" if zatsu_pct >= 100 else ("#F59E0B" if zatsu_pct >= 85 else "#818CF8")
 
     extra_tr = f" ／ その他 ¥{int(adj_trans_other):,}" if adj_trans_other != 0 else ""
     st.markdown(f"""
