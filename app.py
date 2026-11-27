@@ -126,30 +126,6 @@ def calc_sashisu_hours(start_t, end_t, break_min):
 
     return round(normal_min / 60, 2), round(late_min / 60, 2)
 
-# --- サイドバー：設定変更 ---
-with st.sidebar:
-    st.header("⚙️ 単価・上限設定")
-    st.caption("東進の月別単価や毎年の扶養上限はここで変更できます")
-    new_settings = {}
-    new_settings["fuyo_limit"] = st.number_input("給与所得 扶養上限 (円)", value=int(settings["fuyo_limit"]), step=10000)
-    new_settings["zatsu_limit"] = st.number_input("業務委託(東進) 雑所得上限 (円)", value=int(settings["zatsu_limit"]), step=10000)
-    st.divider()
-    new_settings["sashisu_wage"] = st.number_input("さしす 時給 (円)", value=int(settings["sashisu_wage"]), step=10)
-    new_settings["sashisu_trans"] = st.number_input("さしす 往復交通費 (円)", value=int(settings["sashisu_trans"]), step=10)
-    new_settings["kyoshin_koma_wage"] = st.number_input("京進 1コマ給 (円)", value=int(settings["kyoshin_koma_wage"]), step=10)
-    new_settings["kyoshin_trans_benten"] = st.number_input("京進 弁天町 交通費 (円)", value=int(settings["kyoshin_trans_benten"]), step=10)
-    new_settings["kyoshin_trans_noda"] = st.number_input("京進 野田阪神 交通費 (円)", value=int(settings["kyoshin_trans_noda"]), step=10)
-    st.divider()
-    new_settings["toshin_normal_unit"] = st.number_input("東進 通常採点 単価 (円)", value=int(settings["toshin_normal_unit"]), step=100)
-    new_settings["toshin_short_unit"] = st.number_input("東進 模試(短答) 単価 (円)", value=int(settings["toshin_short_unit"]), step=100)
-    new_settings["toshin_essay_unit"] = st.number_input("東進 模試(記述) 単価 (円)", value=int(settings["toshin_essay_unit"]), step=100)
-
-    if st.button("設定を保存", type="primary"):
-        save_s = pd.DataFrame([{"key": k, "value": v} for k, v in new_settings.items()])
-        save_df("settings", save_s)
-        st.success("設定を保存しました！")
-        st.rerun()
-
 # --- メイン画面 ---
 st.title("💰 バイト給料・シフト管理")
 
@@ -157,8 +133,8 @@ current_year = datetime.date.today().year
 year_options = list(range(2024, 2036))
 default_year_idx = year_options.index(current_year) if current_year in year_options else 0
 
-tab_cal, tab_summary, tab_adj, tab_pdf = st.tabs([
-    "📅 カレンダー", "📊 集計・扶養", "⚖️ 特別手当・調整", "📄 給料明細PDF"
+tab_cal, tab_summary, tab_adj, tab_pdf, tab_settings = st.tabs([
+    "📅 カレンダー", "📊 集計・扶養", "⚖️ 手当・調整", "📄 給料明細PDF", "⚙️ 単価・上限設定"
 ])
 
 # ==========================================
@@ -191,7 +167,6 @@ with tab_cal:
     if "selected_date" not in st.session_state:
         st.session_state["selected_date"] = datetime.date.today().strftime("%Y-%m-%d")
 
-    # UTC文字列を日本時間(JST)の日付文字列に補正する関数
     def parse_cal_date(raw_str):
         if not raw_str:
             return None
@@ -205,7 +180,6 @@ with tab_cal:
                 pass
         return s[:10]
 
-    # カレンダーのタップ・選択イベントを安全に取得
     clicked_raw = None
     cal_event_obj = None
     if isinstance(cal_state, dict):
@@ -226,7 +200,6 @@ with tab_cal:
         if parsed_date:
             st.session_state["selected_date"] = parsed_date
 
-    # 直接日付を選べるピッカー（カレンダーのタップとも連動）
     picked_date = st.date_input(
         "📅 入力する日付（カレンダーをタップしても切り替わります）",
         value=datetime.date.fromisoformat(st.session_state["selected_date"])
@@ -243,7 +216,7 @@ with tab_cal:
 
     with st.form("daily_form"):
         # 1. さしす
-        st.markdown("#### 🏮 さしす（居酒屋）")
+        st.markdown(f"#### 🏮 さしす（時給 ¥{int(settings['sashisu_wage']):,}）")
         use_sashisu = st.checkbox("さしすに出勤した", value=(row is not None and float(row["sashisu_pay"] or 0) > 0))
         c1, c2, c3 = st.columns(3)
         def_start = datetime.datetime.strptime(row["sashisu_start"], "%H:%M").time() if (row is not None and row["sashisu_start"]) else datetime.time(17, 0)
@@ -255,7 +228,7 @@ with tab_cal:
         s_break = c3.number_input("休憩(分)", min_value=0, max_value=180, step=15, value=def_break)
 
         # 2. 京進
-        st.markdown("#### 🏫 京進（塾）")
+        st.markdown(f"#### 🏫 京進（1コマ ¥{int(settings['kyoshin_koma_wage']):,}）")
         loc_options = ["なし", "弁天町", "野田阪神"]
         def_loc_idx = loc_options.index(row["kyoshin_loc"]) if (row is not None and row["kyoshin_loc"] in loc_options) else 0
         def_koma = int(row["kyoshin_koma"]) if (row is not None and row["kyoshin_koma"] != "") else 0
@@ -265,7 +238,7 @@ with tab_cal:
         k_koma = k2.number_input("コマ数", min_value=0, max_value=10, step=1, value=def_koma)
 
         # 3. 東進
-        st.markdown("#### ✍️ 東進（採点バイト・工数）")
+        st.markdown(f"#### ✍️ 東進（通常 ¥{int(settings['toshin_normal_unit']):,} / 短答 ¥{int(settings['toshin_short_unit']):,} / 記述 ¥{int(settings['toshin_essay_unit']):,}）")
         t1, t2, t3 = st.columns(3)
         def_tn = float(row["toshin_normal_k"]) if (row is not None and row["toshin_normal_k"] != "") else 0.0
         def_ts = float(row["toshin_short_k"]) if (row is not None and row["toshin_short_k"] != "") else 0.0
@@ -330,50 +303,76 @@ with tab_summary:
     df_by = df_bonuses[df_bonuses["year_month"].astype(str).str.startswith(y_str)].copy()
     df_ay = df_adjs[df_adjs["year_month"].astype(str).str.startswith(y_str)].copy()
 
+    # 調整額の勤務先別集計
     adj_sashisu = df_ay[df_ay["employer"] == "さしす"]["amount"].sum()
     adj_kyoshin = df_ay[df_ay["employer"] == "京進"]["amount"].sum()
     adj_toshin = df_ay[df_ay["employer"] == "東進"]["amount"].sum()
+    adj_trans = df_ay[df_ay["employer"] == "交通費"]["amount"].sum()
 
+    # 各バイト先の年間合計（特別手当・調整額反映済み）
     y_sashisu = df_y["sashisu_pay"].sum() + adj_sashisu
     y_kyoshin = df_y["kyoshin_pay"].sum() + df_by["amount"].sum() + adj_kyoshin
-    y_kyuyo_total = y_sashisu + y_kyoshin
     y_toshin = df_y["toshin_pay"].sum() + adj_toshin
-    y_trans = df_y["sashisu_trans"].sum() + df_y["kyoshin_trans"].sum()
 
-    st.subheader(f"📈 {target_year}年 年間累計 ＆ 上限チェック")
+    # 扶養対象合計（さしす ＋ 京進・手当込 ＋ 東進・調整込 ／ 交通費は除外）
+    y_fuyo_total = y_sashisu + y_kyoshin + y_toshin
 
+    # 交通費合計（さしす交通費 ＋ 京進交通費 ＋ 交通費調整）
+    y_trans_total = df_y["sashisu_trans"].sum() + df_y["kyoshin_trans"].sum() + adj_trans
+
+    st.subheader(f"📈 {target_year}年 年間累計サマリー")
+
+    # 3つの重要金額カード
+    m1, m2, m3 = st.columns(3)
+    m1.metric("扶養対象 合計 (交通費抜)", f"¥{int(y_fuyo_total):,}")
+    m2.metric("交通費 合計", f"¥{int(y_trans_total):,}")
+    m3.metric("年間 総支給額 (交通費込)", f"¥{int(y_fuyo_total + y_trans_total):,}")
+
+    st.divider()
+
+    # 扶養上限ゲージ（さしす＋京進＋東進 すべて合算）
     fuyo_limit = settings["fuyo_limit"]
-    fuyo_rem = fuyo_limit - y_kyuyo_total
-    st.write(f"**給与所得（さしす＋京進・手当/調整込）**: ¥{int(y_kyuyo_total):,} / 上限 ¥{int(fuyo_limit):,}")
-    st.progress(min(1.0, max(0.0, y_kyuyo_total / fuyo_limit)))
-    st.caption(f"扶養上限まで残り：**¥{int(fuyo_rem):,}** （※交通費 ¥{int(y_trans):,} は含まず）")
+    fuyo_rem = fuyo_limit - y_fuyo_total
+    st.write(f"**扶養上限チェック（さしす＋京進＋東進 すべて合算）**: ¥{int(y_fuyo_total):,} / 上限 ¥{int(fuyo_limit):,}")
+    st.progress(min(1.0, max(0.0, y_fuyo_total / fuyo_limit)))
+    st.caption(
+        f"扶養上限まで残り：**¥{int(fuyo_rem):,}**\n\n"
+        f"（内訳：さしす ¥{int(y_sashisu):,} ＋ 京進・特別手当込 ¥{int(y_kyoshin):,} ＋ 東進 ¥{int(y_toshin):,} ／ ※交通費 ¥{int(y_trans_total):,} は除外）"
+    )
 
+    # 雑所得上限ゲージ（東進単体）
     zatsu_limit = settings["zatsu_limit"]
     zatsu_rem = zatsu_limit - y_toshin
-    st.write(f"**業務委託（東進・調整込）**: ¥{int(y_toshin):,} / 上限 ¥{int(zatsu_limit):,}")
+    st.write(f"**業務委託（東進単体・調整込）**: ¥{int(y_toshin):,} / 上限 ¥{int(zatsu_limit):,}")
     st.progress(min(1.0, max(0.0, y_toshin / zatsu_limit)))
     st.caption(f"雑所得上限まで残り：**¥{int(zatsu_rem):,}**")
 
     st.divider()
-    st.subheader("📅 月別集計（調整額反映済）")
+    st.subheader("📅 月別集計（特別手当・調整額・交通費反映済）")
     if not df_y.empty or not df_by.empty or not df_ay.empty:
         df_y["ym"] = df_y["date"].astype(str).str.slice(0, 7)
         m_logs = df_y.groupby("ym")[num_cols].sum().reset_index()
         m_bonus = df_by.groupby("year_month")["amount"].sum().reset_index().rename(columns={"year_month": "ym", "amount": "特別手当"})
-        m_adj = df_ay.groupby("year_month")["amount"].sum().reset_index().rename(columns={"year_month": "ym", "amount": "差額調整"})
+
+        m_pay_adj = df_ay[df_ay["employer"] != "交通費"].groupby("year_month")["amount"].sum().reset_index().rename(columns={"year_month": "ym", "amount": "給料調整"})
+        m_trans_adj = df_ay[df_ay["employer"] == "交通費"].groupby("year_month")["amount"].sum().reset_index().rename(columns={"year_month": "ym", "amount": "交通費調整"})
 
         m_all = pd.merge(m_logs, m_bonus, on="ym", how="outer")
-        m_all = pd.merge(m_all, m_adj, on="ym", how="outer").fillna(0).sort_values("ym")
-        m_all["合計(交通費込)"] = (
-            m_all["sashisu_pay"] + m_all["sashisu_trans"] +
-            m_all["kyoshin_pay"] + m_all["kyoshin_trans"] +
-            m_all["toshin_pay"] + m_all["特別手当"] + m_all["差額調整"]
-        )
-        m_all = m_all.rename(columns={
-            "ym": "年月", "sashisu_pay": "さしす", "kyoshin_pay": "京進",
-            "toshin_pay": "東進", "sashisu_trans": "さしす交通費", "kyoshin_trans": "京進交通費"
+        m_all = pd.merge(m_all, m_pay_adj, on="ym", how="outer")
+        m_all = pd.merge(m_all, m_trans_adj, on="ym", how="outer").fillna(0).sort_values("ym")
+
+        m_all["交通費計"] = m_all["sashisu_trans"] + m_all["kyoshin_trans"] + m_all["交通費調整"]
+        m_all["扶養対象計"] = m_all["sashisu_pay"] + m_all["kyoshin_pay"] + m_all["toshin_pay"] + m_all["特別手当"] + m_all["給料調整"]
+        m_all["総支給(交通費込)"] = m_all["扶養対象計"] + m_all["交通費計"]
+
+        disp_cols = ["ym", "sashisu_pay", "kyoshin_pay", "toshin_pay", "特別手当", "給料調整", "扶養対象計", "交通費計", "総支給(交通費込)"]
+        m_disp = m_all[disp_cols].rename(columns={
+            "ym": "年月",
+            "sashisu_pay": "さしす",
+            "kyoshin_pay": "京進",
+            "toshin_pay": "東進",
         })
-        st.dataframe(m_all.set_index("年月").astype(int), use_container_width=True)
+        st.dataframe(m_disp.set_index("年月").astype(int), use_container_width=True)
     else:
         st.info("まだデータがありません。")
 
@@ -382,13 +381,13 @@ with tab_summary:
 # ==========================================
 with tab_adj:
     st.subheader("⚖️ ズレた金額（差額）の手打ち調整")
-    st.caption("実際の振込額とズレた分をプラスまたはマイナス（例: -150, 300）で入力してください。")
+    st.caption("実際の振込額とズレた分をプラスまたはマイナス（例: -150, 300）で入力してください。「交通費」を選ぶと扶養計算には入らず交通費合計にのみ反映されます。")
     with st.form("adj_form"):
         a1, a2 = st.columns(2)
         a_ym = a1.text_input("対象年月 (例: 2026-11)", value=datetime.date.today().strftime("%Y-%m"))
-        a_emp = a2.selectbox("勤務先", ["さしす", "京進", "東進"])
+        a_emp = a2.selectbox("項目・勤務先", ["さしす", "京進", "東進", "交通費"])
         a_amt = st.number_input("調整額 (円・マイナス入力可)", step=10, value=0)
-        a_memo = st.text_input("メモ (例: 端数ズレ調整、源泉徴収など)")
+        a_memo = st.text_input("メモ (例: 端数ズレ調整、定期代差額など)")
         if st.form_submit_button("調整額を登録", type="primary"):
             if a_amt != 0:
                 new_a = pd.DataFrame([{"year_month": a_ym, "employer": a_emp, "amount": a_amt, "memo": a_memo}])
@@ -402,6 +401,7 @@ with tab_adj:
 
     st.divider()
     st.subheader("🎁 京進 特別手当の登録")
+    st.caption("登録した特別手当は京進の給与（扶養対象）に自動加算されます。")
     with st.form("bonus_form"):
         b_ym = st.text_input("対象年月 (例: 2026-11)", value=datetime.date.today().strftime("%Y-%m"), key="b_ym")
         b_amt = st.number_input("金額 (円)", min_value=0, step=500, value=0)
@@ -498,3 +498,64 @@ with tab_pdf:
                     st.markdown(pdf_iframe, unsafe_allow_html=True)
     else:
         st.info("まだ給料明細が登録されていません。")
+
+# ==========================================
+# タブ5：単価・交通費・上限設定（メイン画面内）
+# ==========================================
+with tab_settings:
+    st.subheader("⚙️ 時給・単価・上限の変更")
+    st.caption("ここで変更して保存すると、これからのシフト登録に自動で適用されます。")
+
+    with st.form("settings_main_form"):
+        new_settings = {}
+        st.markdown("#### 🏮 さしす（居酒屋）")
+        sc1, sc2 = st.columns(2)
+        new_settings["sashisu_wage"] = sc1.number_input("時給 (円)", value=int(settings["sashisu_wage"]), step=10)
+        new_settings["sashisu_trans"] = sc2.number_input("往復交通費 (円)", value=int(settings["sashisu_trans"]), step=10)
+
+        st.markdown("#### 🏫 京進（塾）")
+        kc1, kc2, kc3 = st.columns(3)
+        new_settings["kyoshin_koma_wage"] = kc1.number_input("1コマ給 (円)", value=int(settings["kyoshin_koma_wage"]), step=10)
+        new_settings["kyoshin_trans_benten"] = kc2.number_input("弁天町 交通費 (円)", value=int(settings["kyoshin_trans_benten"]), step=10)
+        new_settings["kyoshin_trans_noda"] = kc3.number_input("野田阪神 交通費 (円)", value=int(settings["kyoshin_trans_noda"]), step=10)
+
+        st.markdown("#### ✍️ 東進（採点バイト・月別単価）")
+        tc1, tc2, tc3 = st.columns(3)
+        new_settings["toshin_normal_unit"] = tc1.number_input("通常採点 単価 (円)", value=int(settings["toshin_normal_unit"]), step=100)
+        new_settings["toshin_short_unit"] = tc2.number_input("模試(短答) 単価 (円)", value=int(settings["toshin_short_unit"]), step=100)
+        new_settings["toshin_essay_unit"] = tc3.number_input("模試(記述) 単価 (円)", value=int(settings["toshin_essay_unit"]), step=100)
+
+        st.markdown("#### 📊 年間上限設定")
+        lc1, lc2 = st.columns(2)
+        new_settings["fuyo_limit"] = lc1.number_input("扶養上限 (円)", value=int(settings["fuyo_limit"]), step=10000)
+        new_settings["zatsu_limit"] = lc2.number_input("業務委託(東進) 雑所得上限 (円)", value=int(settings["zatsu_limit"]), step=10000)
+
+        if st.form_submit_button("設定を保存する", type="primary"):
+            save_s = pd.DataFrame([{"key": k, "value": v} for k, v in new_settings.items()])
+            save_df("settings", save_s)
+            st.success("新しい単価・上限設定を保存しました！")
+            st.rerun()
+
+    st.divider()
+    st.subheader("🔄 すでに登録済みの東進データを最新単価で再計算")
+    st.caption("東進の今月の単価が確定したあと、すでに工数を入力済みの日をまとめて新単価で計算し直したいときに使います。")
+    with st.form("recalc_toshin_form"):
+        rc_ym = st.text_input("再計算する対象年月 (例: 2026-11)", value=datetime.date.today().strftime("%Y-%m"))
+        if st.form_submit_button("この月の東進金額を現在の単価で再計算"):
+            if not df_logs.empty:
+                mask = df_logs["date"].astype(str).str.startswith(rc_ym)
+                if mask.any():
+                    for idx in df_logs[mask].index:
+                        tn = float(df_logs.loc[idx, "toshin_normal_k"] or 0)
+                        ts = float(df_logs.loc[idx, "toshin_short_k"] or 0)
+                        te = float(df_logs.loc[idx, "toshin_essay_k"] or 0)
+                        df_logs.loc[idx, "toshin_pay"] = round(
+                            tn * settings["toshin_normal_unit"]
+                            + ts * settings["toshin_short_unit"]
+                            + te * settings["toshin_essay_unit"]
+                        )
+                    save_df("logs", df_logs)
+                    st.success(f"{rc_ym} の東進金額を最新の単価で再計算しました！")
+                    st.rerun()
+                else:
+                    st.warning(f"{rc_ym} のデータが見つかりませんでした。")
