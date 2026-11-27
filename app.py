@@ -9,7 +9,7 @@ from streamlit_calendar import calendar
 # --- ページ設定 ---
 st.set_page_config(page_title="給料管理", layout="centered")
 
-# --- 全体デザイン（OLEDダーク・ミニマル・モバイル最適化） ---
+# --- 全体デザイン（カラー階層・タイポグラフィ強弱・モバイル最適化） ---
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
@@ -24,10 +24,10 @@ header[data-testid="stHeader"] {
     display: none !important;
 }
 
-/* ベース背景・文字色 */
+/* ベース背景：深みのあるミッドナイトネイビー */
 .stApp {
-    background-color: #09090B !important;
-    color: #F4F4F5 !important;
+    background-color: #0B0F19 !important;
+    color: #E2E8F0 !important;
 }
 
 html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
@@ -38,62 +38,75 @@ html, body, [class*="css"], .stMarkdown, .stTextInput, .stNumberInput,
 }
 
 .block-container {
-    padding-top: 1.25rem !important;
+    padding-top: 1.3rem !important;
     padding-bottom: 3.5rem !important;
     padding-left: 1rem !important;
     padding-right: 1rem !important;
     max-width: 760px !important;
 }
 
-/* ウィジェットラベル・キャプションの視認性を確実に確保 */
-[data-testid="stWidgetLabel"] p,
+/* ラベルは小さく落ち着いたブルーグレー、入力値は大きく鮮明に */
+[data-testid="stWidgetLabel"] p {
+    color: #8B9BB4 !important;
+    font-size: 0.73rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.03em !important;
+    margin-bottom: 2px !important;
+}
 .stCheckbox label span,
 .stCheckbox label p {
-    color: #D4D4D8 !important;
-    font-size: 0.82rem !important;
+    color: #CBD5E1 !important;
+    font-size: 0.88rem !important;
     font-weight: 600 !important;
 }
 [data-testid="stCaptionContainer"] p {
-    color: #A1A1AA !important;
-    font-size: 0.78rem !important;
+    color: #7E90AC !important;
+    font-size: 0.74rem !important;
+    line-height: 1.5 !important;
 }
 hr {
-    border-color: #232630 !important;
-    margin: 0.9rem 0 !important;
+    border-color: #1E293B !important;
+    margin: 1rem 0 !important;
 }
 
-/* ヘッダータイトル */
+/* メインヘッダー（タイトルを大きく、日付は控えめなアクセント） */
 .app-header {
     display: flex;
-    align-items: baseline;
+    align-items: flex-end;
     justify-content: space-between;
-    margin-bottom: 1rem;
+    margin-bottom: 1.15rem;
     padding: 0 0.15rem;
 }
 .app-title {
-    font-size: 1.55rem;
+    font-size: 2.0rem;
     font-weight: 800;
-    color: #FAFAFA;
-    letter-spacing: -0.03em;
-    line-height: 1.3;
+    letter-spacing: -0.04em;
+    line-height: 1.15;
+    background: linear-gradient(120deg, #F8FAFC 20%, #7DD3FC 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 .app-sub {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: #71717A;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #60A5FA;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    padding: 3px 10px;
+    border-radius: 99px;
     font-variant-numeric: tabular-nums;
 }
 
-/* タブ：ダークセグメントコントロール */
+/* タブ：グラデーションアクセント付きセグメントコントロール */
 .stTabs [data-baseweb="tab-list"] {
-    background-color: #13151B;
-    border: 1px solid #232630;
+    background-color: #121826;
+    border: 1px solid #1E293B;
     padding: 4px;
-    border-radius: 13px;
-    gap: 2px;
+    border-radius: 14px;
+    gap: 3px;
     display: flex;
     width: 100%;
-    margin-bottom: 1rem;
+    margin-bottom: 1.15rem;
 }
 .stTabs [data-baseweb="tab-highlight"],
 .stTabs [data-baseweb="tab-border"] {
@@ -102,353 +115,440 @@ hr {
 .stTabs [data-baseweb="tab"] {
     flex: 1 1 0;
     justify-content: center;
-    height: 2.35rem;
-    padding: 0 0.25rem !important;
+    height: 2.45rem;
+    padding: 0 0.2rem !important;
     font-weight: 600;
-    font-size: 0.8rem;
-    color: #71717A !important;
-    border-radius: 9px !important;
+    font-size: 0.78rem;
+    color: #64748B !important;
+    border-radius: 10px !important;
     border: none !important;
     background: transparent;
     white-space: nowrap;
     transition: all 0.15s ease;
 }
 .stTabs [aria-selected="true"] {
-    background-color: #272B36 !important;
-    color: #FAFAFA !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%) !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
 }
 
-/* セクション見出し */
+/* セクション大見出し（サイズを大きく・青グラデバー） */
 .section-header {
-    font-size: 0.96rem;
-    font-weight: 700;
-    color: #FAFAFA;
-    letter-spacing: -0.01em;
-    margin: 1.1rem 0 0.6rem 0.15rem;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #F1F5F9;
+    letter-spacing: -0.02em;
+    margin: 1.35rem 0 0.7rem 0.1rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.55rem;
 }
 .section-header::before {
     content: "";
     display: inline-block;
-    width: 3px;
-    height: 1rem;
-    background-color: #34D399;
+    width: 4px;
+    height: 1.2rem;
+    background: linear-gradient(180deg, #38BDF8 0%, #6366F1 100%);
     border-radius: 99px;
 }
 
+/* 勤務先別の中見出し＆カラーピル */
 .sub-header {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: #F4F4F5;
-    margin: 0.2rem 0 0.45rem 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin: 0.2rem 0 0.5rem 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    letter-spacing: -0.01em;
 }
-.unit-pill {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #A1A1AA;
-    background: #1E212B;
-    border: 1px solid #2C303D;
-    padding: 2px 9px;
-    border-radius: 99px;
-    font-variant-numeric: tabular-nums;
+.emp-sashisu { color: #FB923C; }
+.emp-kyoshin { color: #38BDF8; }
+.emp-toshin  { color: #34D399; }
+.emp-neutral { color: #C084FC; }
+
+.pill-sashisu {
+    font-size: 0.72rem; font-weight: 700; color: #FDBA74;
+    background: rgba(251, 146, 60, 0.14); border: 1px solid rgba(251, 146, 60, 0.3);
+    padding: 3px 10px; border-radius: 99px; font-variant-numeric: tabular-nums;
+}
+.pill-kyoshin {
+    font-size: 0.72rem; font-weight: 700; color: #7DD3FC;
+    background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.3);
+    padding: 3px 10px; border-radius: 99px; font-variant-numeric: tabular-nums;
+}
+.pill-toshin {
+    font-size: 0.72rem; font-weight: 700; color: #6EE7B7;
+    background: rgba(52, 211, 153, 0.14); border: 1px solid rgba(52, 211, 153, 0.3);
+    padding: 3px 10px; border-radius: 99px; font-variant-numeric: tabular-nums;
+}
+.pill-neutral {
+    font-size: 0.72rem; font-weight: 700; color: #CBD5E1;
+    background: #1E293B; border: 1px solid #334155;
+    padding: 3px 10px; border-radius: 99px; font-variant-numeric: tabular-nums;
 }
 
-/* ダークカード（フォーム・エキスパンダー） */
+/* カード（フォーム・エキスパンダー） */
 [data-testid="stForm"] {
-    background-color: #13151B !important;
-    border: 1px solid #232630 !important;
-    border-radius: 16px !important;
-    padding: 1.2rem 1.1rem !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+    background-color: #121826 !important;
+    border: 1px solid #1E293B !important;
+    border-radius: 18px !important;
+    padding: 1.25rem 1.15rem !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35) !important;
 }
 
 [data-testid="stExpander"] {
-    background-color: #13151B !important;
-    border: 1px solid #232630 !important;
+    background-color: #121826 !important;
+    border: 1px solid #1E293B !important;
     border-radius: 14px !important;
     overflow: hidden;
 }
 [data-testid="stExpander"] summary {
-    color: #F4F4F5 !important;
-    font-weight: 600 !important;
+    color: #E2E8F0 !important;
+    font-weight: 700 !important;
+    font-size: 0.94rem !important;
 }
 
-/* 入力欄 */
+/* 入力欄：入力値を大きめ・太めにしてラベルとのサイズ差を強調 */
 .stTextInput > div > div > input,
 .stNumberInput > div > div > input,
 .stDateInput > div > div > input,
 .stTimeInput > div > div > input {
-    background-color: #1B1E27 !important;
-    border-color: #2D313F !important;
+    background-color: #0B1120 !important;
+    border-color: #26334D !important;
     border-radius: 10px !important;
-    color: #FAFAFA !important;
-    font-size: 0.92rem !important;
+    color: #F8FAFC !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    font-variant-numeric: tabular-nums !important;
 }
 .stSelectbox > div > div {
-    background-color: #1B1E27 !important;
-    border-color: #2D313F !important;
+    background-color: #0B1120 !important;
+    border-color: #26334D !important;
     border-radius: 10px !important;
-    color: #FAFAFA !important;
+    color: #F8FAFC !important;
+    font-size: 0.96rem !important;
+    font-weight: 600 !important;
 }
 .stNumberInput button {
-    background-color: #232733 !important;
-    color: #E4E4E7 !important;
-    border-color: #2D313F !important;
+    background-color: #1E293B !important;
+    color: #93C5FD !important;
+    border-color: #26334D !important;
 }
 
-/* プライマリボタン（ダーク画面に映えるハイコントラスト白ボタン） */
+/* プライマリボタン：ブルー〜インディゴグラデーション */
 .stButton > button[kind="primary"],
 [data-testid="stFormSubmitButton"] > button {
     width: 100%;
-    background-color: #FAFAFA !important;
-    color: #09090B !important;
+    background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%) !important;
+    color: #FFFFFF !important;
     border: none !important;
     border-radius: 12px !important;
     font-weight: 700 !important;
-    font-size: 0.92rem !important;
-    padding: 0.65rem 1.25rem !important;
-    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.08) !important;
+    font-size: 0.96rem !important;
+    padding: 0.72rem 1.25rem !important;
+    margin-top: 0.4rem;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35) !important;
     transition: all 0.15s ease !important;
 }
 .stButton > button[kind="primary"]:hover,
 [data-testid="stFormSubmitButton"] > button:hover {
-    background-color: #E4E4E7 !important;
+    filter: brightness(1.1);
 }
 
-/* ダウンロード・削除など通常ボタン */
+/* 通常ボタン */
 .stDownloadButton > button,
 .stButton > button:not([kind="primary"]) {
-    background-color: #1E212B !important;
-    color: #F4F4F5 !important;
-    border: 1px solid #2E3240 !important;
+    background-color: #1E293B !important;
+    color: #93C5FD !important;
+    border: 1px solid #334155 !important;
     border-radius: 10px !important;
     font-weight: 600 !important;
+    font-size: 0.85rem !important;
 }
 
-/* サマリー用ダークフィンテックカード */
+/* ヒーローサマリーカード（数字を超大きく・グラデ配色） */
 .hero-card {
-    background: linear-gradient(145deg, #181C26 0%, #101218 100%);
-    color: #FAFAFA;
-    border: 1px solid #292E3D;
-    border-radius: 18px;
-    padding: 1.35rem 1.3rem;
-    margin-bottom: 0.85rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    background: linear-gradient(145deg, #172036 0%, #0F172A 100%);
+    border: 1px solid rgba(96, 165, 250, 0.28);
+    border-radius: 20px;
+    padding: 1.45rem 1.35rem;
+    margin-bottom: 0.95rem;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
 }
 .hero-label {
-    font-size: 0.76rem;
-    font-weight: 600;
-    color: #94A3B8;
-    letter-spacing: 0.03em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #93C5FD;
+    letter-spacing: 0.04em;
 }
 .hero-value {
-    font-size: 2.05rem;
+    font-size: 2.55rem;
     font-weight: 800;
-    letter-spacing: -0.03em;
-    margin: 0.2rem 0 0.8rem 0;
-    color: #FFFFFF;
+    letter-spacing: -0.04em;
+    line-height: 1.15;
+    margin: 0.25rem 0 0.95rem 0;
+    background: linear-gradient(90deg, #FFFFFF 0%, #7DD3FC 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     font-variant-numeric: tabular-nums;
 }
 .hero-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
-    padding-top: 0.85rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.16);
 }
 .hero-sub-label {
-    font-size: 0.72rem;
-    color: #94A3B8;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #8B9BB4;
 }
-.hero-sub-val {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #E2E8F0;
-    margin-top: 2px;
+.hero-sub-val-trans {
+    font-size: 1.18rem;
+    font-weight: 800;
+    color: #34D399;
+    margin-top: 3px;
+    font-variant-numeric: tabular-nums;
+}
+.hero-sub-val-total {
+    font-size: 1.18rem;
+    font-weight: 800;
+    color: #F8FAFC;
+    margin-top: 3px;
     font-variant-numeric: tabular-nums;
 }
 
+/* 上限ゲージカード */
 .stat-card {
-    background: #13151B;
-    border: 1px solid #232630;
-    border-radius: 16px;
-    padding: 1.1rem 1.15rem;
-    margin-bottom: 0.85rem;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    background: #121826;
+    border: 1px solid #1E293B;
+    border-radius: 18px;
+    padding: 1.2rem 1.2rem;
+    margin-bottom: 0.9rem;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
 }
 .stat-top {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    margin-bottom: 0.55rem;
+    margin-bottom: 0.5rem;
 }
 .stat-title {
-    font-size: 0.86rem;
+    font-size: 0.84rem;
     font-weight: 700;
-    color: #FAFAFA;
+    color: #94A3B8;
 }
 .stat-ratio {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
-    color: #A1A1AA;
+    color: #64748B;
+    font-variant-numeric: tabular-nums;
+}
+.stat-rem-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    margin-bottom: 0.55rem;
+}
+.stat-rem-lbl {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #8B9BB4;
+}
+.stat-rem-val {
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
 }
 .bar-track {
     width: 100%;
-    height: 8px;
-    background: #232630;
+    height: 9px;
+    background: #1E293B;
     border-radius: 99px;
     overflow: hidden;
-    margin-bottom: 0.65rem;
+    margin-bottom: 0.8rem;
 }
 .bar-fill {
     height: 100%;
     border-radius: 99px;
     transition: width 0.3s ease;
 }
-.stat-rem {
-    font-size: 0.86rem;
-    font-weight: 700;
-    color: #FAFAFA;
-    margin-bottom: 0.45rem;
-    font-variant-numeric: tabular-nums;
+.breakdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.38rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid #1E293B;
 }
-.stat-detail {
-    font-size: 0.76rem;
+.bd-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78rem;
+}
+.bd-left {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
     color: #94A3B8;
-    line-height: 1.65;
+}
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 99px;
+    display: inline-block;
+    flex-shrink: 0;
+}
+.bd-val {
+    font-size: 0.9rem;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
 }
 
 /* 選択日・期間ステータスバー */
 .day-pill-bar {
-    background: #13151B;
-    border: 1px solid #232630;
+    background: linear-gradient(90deg, #131C31 0%, #121826 100%);
+    border: 1px solid #1E293B;
+    border-left: 4px solid #38BDF8;
     border-radius: 12px;
-    padding: 0.65rem 0.9rem;
-    margin: 0.35rem 0 0.75rem 0;
+    padding: 0.75rem 1rem;
+    margin: 0.45rem 0 0.85rem 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.82rem;
-    color: #A1A1AA;
     font-variant-numeric: tabular-nums;
 }
-.day-pill-bar strong {
+.day-pill-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.day-pill-date {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #F1F5F9;
+}
+.day-pill-sub {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #8B9BB4;
+}
+.day-pill-amount {
+    font-size: 1.35rem;
+    font-weight: 800;
     color: #34D399;
-    font-size: 0.98rem;
+    letter-spacing: -0.02em;
 }
 
 /* カレンダーiframeの角丸 */
 iframe[title="streamlit_calendar.calendar"] {
-    border-radius: 18px !important;
+    border-radius: 20px !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# --- カレンダー専用CSS（ダークモード・iframe内部に直接適用） ---
+# --- カレンダー専用CSS（ネイビーダーク・強弱＆カラー配色） ---
 CALENDAR_CSS = """
 html, body {
-    background-color: #09090B !important;
+    background-color: #0B0F19 !important;
 }
 .fc {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Hiragino Sans", sans-serif !important;
-    background: #13151B !important;
-    border-radius: 18px !important;
-    padding: 14px 10px 10px 10px !important;
-    border: 1px solid #232630 !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
-    color: #F4F4F5 !important;
+    background: #121826 !important;
+    border-radius: 20px !important;
+    padding: 16px 10px 12px 10px !important;
+    border: 1px solid #1E293B !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.38) !important;
+    color: #E2E8F0 !important;
 }
 .fc-header-toolbar {
-    margin-bottom: 12px !important;
+    margin-bottom: 14px !important;
     padding: 0 4px !important;
 }
+/* 月タイトルを大きくシアン系に */
 .fc .fc-toolbar-title {
-    font-size: 1.05rem !important;
+    font-size: 1.25rem !important;
     font-weight: 800 !important;
-    color: #FAFAFA !important;
-    letter-spacing: -0.02em !important;
+    color: #F8FAFC !important;
+    letter-spacing: -0.03em !important;
 }
-/* モノトーンのダークナビゲーションボタン */
 .fc .fc-button-primary {
-    background-color: #1E212B !important;
-    border: 1px solid #2C303D !important;
-    color: #E4E4E7 !important;
+    background-color: #1E293B !important;
+    border: 1px solid #334155 !important;
+    color: #93C5FD !important;
     border-radius: 9px !important;
-    font-size: 0.76rem !important;
+    font-size: 0.74rem !important;
     font-weight: 700 !important;
     padding: 5px 10px !important;
     box-shadow: none !important;
-    transition: background-color 0.15s ease !important;
+    transition: all 0.15s ease !important;
 }
 .fc .fc-button-primary:hover,
 .fc .fc-button-primary:active,
 .fc .fc-button-primary:focus {
-    background-color: #2B303E !important;
+    background-color: #2563EB !important;
+    border-color: #3B82F6 !important;
     color: #FFFFFF !important;
     box-shadow: none !important;
 }
 .fc .fc-button-primary:disabled {
-    background-color: #181A22 !important;
-    color: #52525B !important;
-    border-color: #232630 !important;
+    background-color: #151C2C !important;
+    color: #475569 !important;
+    border-color: #1E293B !important;
     opacity: 1 !important;
 }
 .fc .fc-button-group > .fc-button {
     margin-left: 4px !important;
     border-radius: 9px !important;
 }
-/* 格子線を消して極細のダーク区切り線のみにする */
 .fc-theme-standard .fc-scrollgrid,
 .fc-theme-standard td,
 .fc-theme-standard th {
     border: none !important;
 }
 .fc-col-header {
-    border-bottom: 1px solid #1F222C !important;
+    border-bottom: 1px solid #1E293B !important;
 }
 .fc-col-header-cell {
     padding: 4px 0 8px 0 !important;
 }
+/* 曜日は極小にして日付数字を引き立てる */
 .fc-col-header-cell-cushion {
-    font-size: 0.7rem !important;
+    font-size: 0.66rem !important;
     font-weight: 700 !important;
-    color: #71717A !important;
+    color: #64748B !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
+    letter-spacing: 0.08em !important;
     text-decoration: none !important;
 }
 .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion {
-    color: #F87171 !important;
+    color: #FB7185 !important;
 }
 .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
-    color: #60A5FA !important;
+    color: #38BDF8 !important;
 }
 .fc-daygrid-body tr {
-    border-top: 1px solid #1C1F28 !important;
+    border-top: 1px solid #1A2234 !important;
 }
 .fc-daygrid-day-frame {
-    min-height: 54px !important;
-    padding: 4px 1px !important;
+    min-height: 56px !important;
+    padding: 5px 1px !important;
     border-radius: 10px !important;
 }
 .fc-daygrid-day-top {
     justify-content: center !important;
-    margin-bottom: 2px !important;
+    margin-bottom: 3px !important;
 }
 .fc-daygrid-day-number {
-    font-size: 0.82rem !important;
-    font-weight: 600 !important;
-    color: #E4E4E7 !important;
-    width: 26px !important;
-    height: 26px !important;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    color: #CBD5E1 !important;
+    width: 28px !important;
+    height: 28px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -458,28 +558,29 @@ html, body {
     font-variant-numeric: tabular-nums !important;
 }
 .fc-day-sun .fc-daygrid-day-number {
-    color: #F87171 !important;
+    color: #FB7185 !important;
 }
 .fc-day-sat .fc-daygrid-day-number {
-    color: #60A5FA !important;
+    color: #38BDF8 !important;
 }
 .fc-day-other .fc-daygrid-day-number {
-    color: #3F3F46 !important;
+    color: #334155 !important;
     font-weight: 500 !important;
 }
-/* 当日：白丸バッジ */
+/* 当日：鮮やかなブルー丸バッジ */
 .fc-day-today {
     background: transparent !important;
 }
 .fc-day-today .fc-daygrid-day-number {
-    background-color: #FAFAFA !important;
-    color: #09090B !important;
+    background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%) !important;
+    color: #FFFFFF !important;
     font-weight: 800 !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5) !important;
 }
-/* 金額バッジ：ダーク画面で映えるエメラルド */
+/* 金額バッジ：くっきり映えるエメラルド */
 .fc-daygrid-event {
-    background-color: rgba(16, 185, 129, 0.16) !important;
-    border: 1px solid rgba(52, 211, 153, 0.25) !important;
+    background-color: rgba(16, 185, 129, 0.18) !important;
+    border: 1px solid rgba(52, 211, 153, 0.35) !important;
     border-radius: 6px !important;
     padding: 1px 2px !important;
     margin: 1px 2px 0 2px !important;
@@ -490,15 +591,15 @@ html, body {
 }
 .fc-event-title {
     color: #34D399 !important;
-    font-size: 0.63rem !important;
-    font-weight: 700 !important;
+    font-size: 0.65rem !important;
+    font-weight: 800 !important;
     letter-spacing: -0.02em !important;
     font-variant-numeric: tabular-nums !important;
 }
 /* 選択中の日付ハイライト */
 .fc-bg-event {
     border-radius: 10px !important;
-    opacity: 0.9 !important;
+    opacity: 0.85 !important;
 }
 """
 
@@ -723,7 +824,7 @@ with tab_cal:
         {
             "start": st.session_state["selected_date"],
             "display": "background",
-            "backgroundColor": "#272C3D",
+            "backgroundColor": "#1E3A5F",
         }
     ]
     if not df_logs.empty:
@@ -803,17 +904,22 @@ with tab_cal:
     if row is not None:
         cur_day_sum = int(float(row["sashisu_pay"] or 0) + float(row["kyoshin_pay"] or 0) + float(row["toshin_pay"] or 0))
         cur_day_tr = int(float(row["sashisu_trans"] or 0) + float(row["kyoshin_trans"] or 0))
-        st.markdown(
-            f'<div class="day-pill-bar"><span>{sel_date} の登録額（交通費 ¥{cur_day_tr:,}）</span><strong>¥{cur_day_sum:,}</strong></div>',
-            unsafe_allow_html=True
-        )
+        st.markdown(f"""
+<div class="day-pill-bar">
+  <div class="day-pill-meta">
+    <span class="day-pill-date">{sel_date}</span>
+    <span class="day-pill-sub">交通費 ¥{cur_day_tr:,}</span>
+  </div>
+  <div class="day-pill-amount">¥{cur_day_sum:,}</div>
+</div>
+""", unsafe_allow_html=True)
     else:
         st.markdown(f'<div class="section-header">{sel_date} の勤務入力</div>', unsafe_allow_html=True)
 
     with st.form("daily_form"):
-        # 1. さしす
+        # 1. さしす（アンバーオレンジ）
         st.markdown(
-            f'<div class="sub-header"><span>さしす</span><span class="unit-pill">時給 ¥{int(settings["sashisu_wage"]):,}</span></div>',
+            f'<div class="sub-header"><span class="emp-sashisu">さしす</span><span class="pill-sashisu">時給 ¥{int(settings["sashisu_wage"]):,}</span></div>',
             unsafe_allow_html=True
         )
         use_sashisu = st.checkbox("出勤あり", value=(row is not None and float(row["sashisu_pay"] or 0) > 0))
@@ -828,9 +934,9 @@ with tab_cal:
 
         st.divider()
 
-        # 2. 京進
+        # 2. 京進（スカイブルー）
         st.markdown(
-            f'<div class="sub-header"><span>京進</span><span class="unit-pill">1コマ ¥{int(settings["kyoshin_koma_wage"]):,}</span></div>',
+            f'<div class="sub-header"><span class="emp-kyoshin">京進</span><span class="pill-kyoshin">1コマ ¥{int(settings["kyoshin_koma_wage"]):,}</span></div>',
             unsafe_allow_html=True
         )
         loc_options = ["なし", "弁天町", "野田阪神"]
@@ -843,10 +949,10 @@ with tab_cal:
 
         st.divider()
 
-        # 3. 東進
+        # 3. 東進（エメラルドグリーン）
         rate_note = "設定済" if is_custom_rate else "標準"
         st.markdown(
-            f'<div class="sub-header"><span>東進</span><span class="unit-pill">{t_period_key}（{rate_note}）</span></div>',
+            f'<div class="sub-header"><span class="emp-toshin">東進</span><span class="pill-toshin">{t_period_key}（{rate_note}）</span></div>',
             unsafe_allow_html=True
         )
         st.caption(f"通常 ¥{tn_unit:,} ／ 短答 ¥{ts_unit:,} ／ 記述 ¥{te_unit:,}")
@@ -946,11 +1052,11 @@ with tab_summary:
   <div class="hero-grid">
     <div>
       <div class="hero-sub-label">交通費 合計</div>
-      <div class="hero-sub-val">¥{int(y_trans_total):,}</div>
+      <div class="hero-sub-val-trans">¥{int(y_trans_total):,}</div>
     </div>
     <div>
       <div class="hero-sub-label">年間 合計（交通費込）</div>
-      <div class="hero-sub-val">¥{int(y_fuyo_total + y_trans_total):,}</div>
+      <div class="hero-sub-val-total">¥{int(y_fuyo_total + y_trans_total):,}</div>
     </div>
   </div>
 </div>
@@ -960,7 +1066,7 @@ with tab_summary:
     fuyo_limit = max(1, settings["fuyo_limit"])
     fuyo_rem = fuyo_limit - y_fuyo_total
     fuyo_pct = min(100.0, max(0.0, (y_fuyo_total / fuyo_limit) * 100))
-    fuyo_color = "#EF4444" if fuyo_pct >= 100 else ("#F59E0B" if fuyo_pct >= 85 else "#34D399")
+    fuyo_color = "#FB7185" if fuyo_pct >= 100 else ("#FBBF24" if fuyo_pct >= 85 else "#38BDF8")
 
     st.markdown(f"""
 <div class="stat-card">
@@ -968,12 +1074,24 @@ with tab_summary:
     <span class="stat-title">扶養上限チェック（合算）</span>
     <span class="stat-ratio">¥{int(y_fuyo_total):,} / ¥{int(fuyo_limit):,}</span>
   </div>
+  <div class="stat-rem-row">
+    <span class="stat-rem-lbl">上限まで残り</span>
+    <span class="stat-rem-val" style="color:{fuyo_color};">¥{int(fuyo_rem):,}</span>
+  </div>
   <div class="bar-track"><div class="bar-fill" style="width:{fuyo_pct:.1f}%; background:{fuyo_color};"></div></div>
-  <div class="stat-rem">上限まで残り ¥{int(fuyo_rem):,}</div>
-  <div class="stat-detail">
-    さしす（{target_year - 1}/12〜{target_year}/11稼働）：¥{int(y_sashisu):,}<br>
-    京進（{target_year - 1}/12〜{target_year}/11稼働・手当込）：¥{int(y_kyoshin):,}<br>
-    東進（{target_year}/01〜{target_year}/12稼働）：¥{int(y_toshin):,}
+  <div class="breakdown-list">
+    <div class="bd-row">
+      <span class="bd-left"><span class="dot" style="background:#FB923C;"></span>さしす（{target_year - 1}/12〜{target_year}/11稼働）</span>
+      <span class="bd-val" style="color:#FDBA74;">¥{int(y_sashisu):,}</span>
+    </div>
+    <div class="bd-row">
+      <span class="bd-left"><span class="dot" style="background:#38BDF8;"></span>京進（{target_year - 1}/12〜{target_year}/11稼働・手当込）</span>
+      <span class="bd-val" style="color:#7DD3FC;">¥{int(y_kyoshin):,}</span>
+    </div>
+    <div class="bd-row">
+      <span class="bd-left"><span class="dot" style="background:#34D399;"></span>東進（{target_year}/01〜{target_year}/12稼働）</span>
+      <span class="bd-val" style="color:#6EE7B7;">¥{int(y_toshin):,}</span>
+    </div>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -982,19 +1100,38 @@ with tab_summary:
     zatsu_limit = max(1, settings["zatsu_limit"])
     zatsu_rem = zatsu_limit - y_toshin
     zatsu_pct = min(100.0, max(0.0, (y_toshin / zatsu_limit) * 100))
-    zatsu_color = "#EF4444" if zatsu_pct >= 100 else ("#F59E0B" if zatsu_pct >= 85 else "#818CF8")
+    zatsu_color = "#FB7185" if zatsu_pct >= 100 else ("#FBBF24" if zatsu_pct >= 85 else "#34D399")
 
-    extra_tr = f" ／ その他 ¥{int(adj_trans_other):,}" if adj_trans_other != 0 else ""
+    extra_tr_html = (
+        f'<div class="bd-row"><span class="bd-left"><span class="dot" style="background:#94A3B8;"></span>その他 交通費</span>'
+        f'<span class="bd-val" style="color:#CBD5E1;">¥{int(adj_trans_other):,}</span></div>'
+        if adj_trans_other != 0 else ""
+    )
     st.markdown(f"""
 <div class="stat-card">
   <div class="stat-top">
     <span class="stat-title">業務委託 雑所得（東進単体）</span>
     <span class="stat-ratio">¥{int(y_toshin):,} / ¥{int(zatsu_limit):,}</span>
   </div>
+  <div class="stat-rem-row">
+    <span class="stat-rem-lbl">上限まで残り</span>
+    <span class="stat-rem-val" style="color:{zatsu_color};">¥{int(zatsu_rem):,}</span>
+  </div>
   <div class="bar-track"><div class="bar-fill" style="width:{zatsu_pct:.1f}%; background:{zatsu_color};"></div></div>
-  <div class="stat-rem">上限まで残り ¥{int(zatsu_rem):,}</div>
-  <div class="stat-detail">
-    交通費内訳：さしす ¥{int(y_trans_sashisu):,} ／ 京進 ¥{int(y_trans_kyoshin):,} ／ 東進 ¥{int(y_trans_toshin):,}{extra_tr}
+  <div class="breakdown-list">
+    <div class="bd-row">
+      <span class="bd-left"><span class="dot" style="background:#FB923C;"></span>さしす 交通費</span>
+      <span class="bd-val" style="color:#FDBA74;">¥{int(y_trans_sashisu):,}</span>
+    </div>
+    <div class="bd-row">
+      <span class="bd-left"><span class="dot" style="background:#38BDF8;"></span>京進 交通費</span>
+      <span class="bd-val" style="color:#7DD3FC;">¥{int(y_trans_kyoshin):,}</span>
+    </div>
+    <div class="bd-row">
+      <span class="bd-left"><span class="dot" style="background:#34D399;"></span>東進 交通費</span>
+      <span class="bd-val" style="color:#6EE7B7;">¥{int(y_trans_toshin):,}</span>
+    </div>
+    {extra_tr_html}
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -1189,11 +1326,16 @@ with tab_settings:
     range_desc = format_period_range_desc(sel_t_year, sel_t_label)
     cur_tn, cur_ts, cur_te, has_saved_rate = get_toshin_units_for_period(target_period_key)
 
-    status_badge = "設定済単価" if has_saved_rate else "標準単価（未設定）"
-    st.markdown(
-        f'<div class="day-pill-bar"><span>{range_desc}</span><span class="unit-pill">{status_badge}</span></div>',
-        unsafe_allow_html=True
-    )
+    status_pill = '<span class="pill-toshin">設定済単価</span>' if has_saved_rate else '<span class="pill-neutral">標準単価（未設定）</span>'
+    st.markdown(f"""
+<div class="day-pill-bar" style="border-left-color:#34D399;">
+  <div class="day-pill-meta">
+    <span class="day-pill-date">{range_desc}</span>
+    <span class="day-pill-sub">東進 締め期間</span>
+  </div>
+  {status_pill}
+</div>
+""", unsafe_allow_html=True)
 
     with st.form("toshin_period_rate_form"):
         tr1, tr2, tr3 = st.columns(3)
@@ -1232,27 +1374,27 @@ with tab_settings:
     st.markdown('<div class="section-header">基本時給・交通費・年間上限</div>', unsafe_allow_html=True)
     with st.form("settings_main_form"):
         new_settings = {}
-        st.markdown('<div class="sub-header"><span>さしす</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="sub-header"><span class="emp-sashisu">さしす</span></div>', unsafe_allow_html=True)
         sc1, sc2 = st.columns(2)
         new_settings["sashisu_wage"] = sc1.number_input("時給（円）", value=int(settings["sashisu_wage"]), step=10)
         new_settings["sashisu_trans"] = sc2.number_input("往復交通費（円）", value=int(settings["sashisu_trans"]), step=10)
 
         st.divider()
-        st.markdown('<div class="sub-header"><span>京進</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="sub-header"><span class="emp-kyoshin">京進</span></div>', unsafe_allow_html=True)
         kc1, kc2, kc3 = st.columns(3)
         new_settings["kyoshin_koma_wage"] = kc1.number_input("1コマ給（円）", value=int(settings["kyoshin_koma_wage"]), step=10)
         new_settings["kyoshin_trans_benten"] = kc2.number_input("弁天町 交通費（円）", value=int(settings["kyoshin_trans_benten"]), step=10)
         new_settings["kyoshin_trans_noda"] = kc3.number_input("野田阪神 交通費（円）", value=int(settings["kyoshin_trans_noda"]), step=10)
 
         st.divider()
-        st.markdown('<div class="sub-header"><span>東進 標準単価（未設定期間用）</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="sub-header"><span class="emp-toshin">東進 標準単価（未設定期間用）</span></div>', unsafe_allow_html=True)
         tc1, tc2, tc3 = st.columns(3)
         new_settings["toshin_normal_unit"] = tc1.number_input("通常採点（円）", value=int(settings["toshin_normal_unit"]), step=100)
         new_settings["toshin_short_unit"] = tc2.number_input("模試・短答（円）", value=int(settings["toshin_short_unit"]), step=100)
         new_settings["toshin_essay_unit"] = tc3.number_input("模試・記述（円）", value=int(settings["toshin_essay_unit"]), step=100)
 
         st.divider()
-        st.markdown('<div class="sub-header"><span>年間上限</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="sub-header"><span class="emp-neutral">年間上限</span></div>', unsafe_allow_html=True)
         lc1, lc2 = st.columns(2)
         new_settings["fuyo_limit"] = lc1.number_input("扶養上限（円）", value=int(settings["fuyo_limit"]), step=10000)
         new_settings["zatsu_limit"] = lc2.number_input("業務委託 雑所得上限（円）", value=int(settings["zatsu_limit"]), step=10000)
