@@ -42,9 +42,10 @@ def get_spreadsheet():
     client = gspread.authorize(creds)
     return client.open_by_key(st.secrets["SPREADSHEET_ID"])
 
-sh = get_spreadsheet()
-
+# キャッシュ機能付き読み込み（10分間は再読み込みせず高速動作・API制限回避）
+@st.cache_data(ttl=600)
 def load_df(sheet_name, columns):
+    sh = get_spreadsheet()
     try:
         ws = sh.worksheet(sheet_name)
     except gspread.WorksheetNotFound:
@@ -56,9 +57,11 @@ def load_df(sheet_name, columns):
     return pd.DataFrame(data)
 
 def save_df(sheet_name, df):
+    sh = get_spreadsheet()
     ws = sh.worksheet(sheet_name)
     ws.clear()
     ws.update([df.columns.values.tolist()] + df.fillna("").values.tolist())
+    st.cache_data.clear()  # 保存したときだけキャッシュを更新
 
 # --- データ読み込み ---
 LOG_COLS = [
@@ -169,7 +172,7 @@ with tab_cal:
             s_p = float(r["sashisu_pay"] or 0)
             k_p = float(r["kyoshin_pay"] or 0)
             t_p = float(r["toshin_pay"] or 0)
-            day_total = s_p + k_p + t_p  # 交通費抜きの合計
+            day_total = s_p + k_p + t_p
             if day_total > 0:
                 events.append({
                     "title": f"¥{int(day_total):,}",
@@ -288,7 +291,6 @@ with tab_summary:
     df_by = df_bonuses[df_bonuses["year_month"].astype(str).str.startswith(y_str)].copy()
     df_ay = df_adjs[df_adjs["year_month"].astype(str).str.startswith(y_str)].copy()
 
-    # 調整額の合算
     adj_sashisu = df_ay[df_ay["employer"] == "さしす"]["amount"].sum()
     adj_kyoshin = df_ay[df_ay["employer"] == "京進"]["amount"].sum()
     adj_toshin = df_ay[df_ay["employer"] == "東進"]["amount"].sum()
@@ -395,11 +397,9 @@ with tab_pdf:
                 ym_str = f"{p_year}-{p_month}"
                 disp_name = f"{p_emp}_{ym_str}"
 
-                # 既存の同名データがあれば上書き
                 if not df_pdfs.empty:
                     df_pdfs = df_pdfs[df_pdfs["display_name"] != disp_name]
 
-                # スプレッドシートの1セル上限(5万文字)対策として4万文字ずつ分割保存
                 chunk_size = 40000
                 chunks = [b64_str[i:i + chunk_size] for i in range(0, len(b64_str), chunk_size)]
                 new_rows = [
@@ -455,7 +455,6 @@ with tab_pdf:
                         save_df("payslips", df_pdfs)
                         st.rerun()
 
-                    # PCブラウザ向けのインラインプレビュー
                     pdf_iframe = f'<iframe src="data:application/pdf;base64,{full_b64}" width="100%" height="500" type="application/pdf"></iframe>'
                     st.markdown(pdf_iframe, unsafe_allow_html=True)
     else:
