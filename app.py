@@ -69,7 +69,7 @@ hr {
     margin: 1rem 0 !important;
 }
 
-/* メインヘッダー（タイトルを大きく、日付は控えめなアクセント） */
+/* メインヘッダー */
 .app-header {
     display: flex;
     align-items: flex-end;
@@ -133,7 +133,7 @@ hr {
     box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
 }
 
-/* セクション大見出し（サイズを大きく・青グラデバー） */
+/* セクション大見出し */
 .section-header {
     font-size: 1.2rem;
     font-weight: 800;
@@ -210,7 +210,7 @@ hr {
     font-size: 0.94rem !important;
 }
 
-/* 入力欄：入力値を大きめ・太めにしてラベルとのサイズ差を強調 */
+/* 入力欄 */
 .stTextInput > div > div > input,
 .stNumberInput > div > div > input,
 .stDateInput > div > div > input,
@@ -237,7 +237,7 @@ hr {
     border-color: #26334D !important;
 }
 
-/* プライマリボタン：ブルー〜インディゴグラデーション */
+/* プライマリボタン */
 .stButton > button[kind="primary"],
 [data-testid="stFormSubmitButton"] > button {
     width: 100%;
@@ -268,7 +268,7 @@ hr {
     font-size: 0.85rem !important;
 }
 
-/* ヒーローサマリーカード（数字を超大きく・グラデ配色） */
+/* ヒーローサマリーカード */
 .hero-card {
     background: linear-gradient(145deg, #172036 0%, #0F172A 100%);
     border: 1px solid rgba(96, 165, 250, 0.28);
@@ -321,7 +321,7 @@ hr {
     font-variant-numeric: tabular-nums;
 }
 
-/* 上限ゲージカード */
+/* 上限ゲージ・内訳カード */
 .stat-card {
     background: #121826;
     border: 1px solid #1E293B;
@@ -451,7 +451,7 @@ iframe[title="streamlit_calendar.calendar"] {
 </style>
 """, unsafe_allow_html=True)
 
-# --- カレンダー専用CSS（ネイビーダーク・強弱＆カラー配色） ---
+# --- カレンダー専用CSS ---
 CALENDAR_CSS = """
 html, body {
     background-color: #0B0F19 !important;
@@ -469,7 +469,6 @@ html, body {
     margin-bottom: 14px !important;
     padding: 0 4px !important;
 }
-/* 月タイトルを大きくシアン系に */
 .fc .fc-toolbar-title {
     font-size: 1.25rem !important;
     font-weight: 800 !important;
@@ -516,7 +515,6 @@ html, body {
 .fc-col-header-cell {
     padding: 4px 0 8px 0 !important;
 }
-/* 曜日は極小にして日付数字を引き立てる */
 .fc-col-header-cell-cushion {
     font-size: 0.66rem !important;
     font-weight: 700 !important;
@@ -567,7 +565,6 @@ html, body {
     color: #334155 !important;
     font-weight: 500 !important;
 }
-/* 当日：鮮やかなブルー丸バッジ */
 .fc-day-today {
     background: transparent !important;
 }
@@ -577,7 +574,6 @@ html, body {
     font-weight: 800 !important;
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5) !important;
 }
-/* 金額バッジ：くっきり映えるエメラルド */
 .fc-daygrid-event {
     background-color: rgba(16, 185, 129, 0.18) !important;
     border: 1px solid rgba(52, 211, 153, 0.35) !important;
@@ -596,7 +592,6 @@ html, body {
     letter-spacing: -0.02em !important;
     font-variant-numeric: tabular-nums !important;
 }
-/* 選択中の日付ハイライト */
 .fc-bg-event {
     border-radius: 10px !important;
     opacity: 0.85 !important;
@@ -1036,7 +1031,8 @@ with tab_summary:
 
     y_sashisu = df_logs_kyuyo["sashisu_pay"].sum() + adj_sashisu
     y_kyoshin = df_logs_kyuyo["kyoshin_pay"].sum() + df_bonuses_fuyo["amount"].sum() + adj_kyoshin
-    y_toshin = df_logs_toshin["toshin_pay"].sum() + adj_toshin
+    toshin_base = df_logs_toshin["toshin_pay"].sum()
+    y_toshin = toshin_base + adj_toshin
     y_fuyo_total = y_sashisu + y_kyoshin + y_toshin
 
     y_trans_sashisu = df_logs_kyuyo["sashisu_trans"].sum() + adj_trans_sashisu
@@ -1071,7 +1067,7 @@ with tab_summary:
     st.markdown(f"""
 <div class="stat-card">
   <div class="stat-top">
-    <span class="stat-title">扶養上限チェック（合算）</span>
+    <span class="stat-title">扶養上限チェック（合算・交通費抜）</span>
     <span class="stat-ratio">¥{int(y_fuyo_total):,} / ¥{int(fuyo_limit):,}</span>
   </div>
   <div class="stat-rem-row">
@@ -1096,21 +1092,21 @@ with tab_summary:
 </div>
 """, unsafe_allow_html=True)
 
-    # 東進 雑所得上限カード
+    # 東進 雑所得上限カード（交通費とは完全分離）
     zatsu_limit = max(1, settings["zatsu_limit"])
     zatsu_rem = zatsu_limit - y_toshin
     zatsu_pct = min(100.0, max(0.0, (y_toshin / zatsu_limit) * 100))
     zatsu_color = "#FB7185" if zatsu_pct >= 100 else ("#FBBF24" if zatsu_pct >= 85 else "#34D399")
 
-    extra_tr_html = (
-        f'<div class="bd-row"><span class="bd-left"><span class="dot" style="background:#94A3B8;"></span>その他 交通費</span>'
-        f'<span class="bd-val" style="color:#CBD5E1;">¥{int(adj_trans_other):,}</span></div>'
-        if adj_trans_other != 0 else ""
+    adj_toshin_html = (
+        f'<div class="bd-row"><span class="bd-left"><span class="dot" style="background:#94A3B8;"></span>報酬 調整額</span>'
+        f'<span class="bd-val" style="color:#CBD5E1;">¥{int(adj_toshin):,}</span></div>'
+        if adj_toshin != 0 else ""
     )
     st.markdown(f"""
 <div class="stat-card">
   <div class="stat-top">
-    <span class="stat-title">業務委託 雑所得（東進単体）</span>
+    <span class="stat-title">業務委託 雑所得（東進単体・交通費抜）</span>
     <span class="stat-ratio">¥{int(y_toshin):,} / ¥{int(zatsu_limit):,}</span>
   </div>
   <div class="stat-rem-row">
@@ -1120,15 +1116,37 @@ with tab_summary:
   <div class="bar-track"><div class="bar-fill" style="width:{zatsu_pct:.1f}%; background:{zatsu_color};"></div></div>
   <div class="breakdown-list">
     <div class="bd-row">
-      <span class="bd-left"><span class="dot" style="background:#FB923C;"></span>さしす 交通費</span>
+      <span class="bd-left"><span class="dot" style="background:#34D399;"></span>東進 採点報酬（{target_year}/01〜{target_year}/12稼働）</span>
+      <span class="bd-val" style="color:#6EE7B7;">¥{int(toshin_base):,}</span>
+    </div>
+    {adj_toshin_html}
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    # 交通費 内訳カード（独立カード）
+    extra_tr_html = (
+        f'<div class="bd-row"><span class="bd-left"><span class="dot" style="background:#94A3B8;"></span>その他 交通費</span>'
+        f'<span class="bd-val" style="color:#CBD5E1;">¥{int(adj_trans_other):,}</span></div>'
+        if adj_trans_other != 0 else ""
+    )
+    st.markdown(f"""
+<div class="stat-card">
+  <div class="stat-top">
+    <span class="stat-title">交通費 内訳（扶養・雑所得対象外）</span>
+    <span class="stat-ratio">合計 ¥{int(y_trans_total):,}</span>
+  </div>
+  <div class="breakdown-list" style="border-top:none; padding-top:0.2rem;">
+    <div class="bd-row">
+      <span class="bd-left"><span class="dot" style="background:#FB923C;"></span>さしす（{target_year - 1}/12〜{target_year}/11稼働）</span>
       <span class="bd-val" style="color:#FDBA74;">¥{int(y_trans_sashisu):,}</span>
     </div>
     <div class="bd-row">
-      <span class="bd-left"><span class="dot" style="background:#38BDF8;"></span>京進 交通費</span>
+      <span class="bd-left"><span class="dot" style="background:#38BDF8;"></span>京進（{target_year - 1}/12〜{target_year}/11稼働）</span>
       <span class="bd-val" style="color:#7DD3FC;">¥{int(y_trans_kyoshin):,}</span>
     </div>
     <div class="bd-row">
-      <span class="bd-left"><span class="dot" style="background:#34D399;"></span>東進 交通費</span>
+      <span class="bd-left"><span class="dot" style="background:#34D399;"></span>東進（{target_year}/01〜{target_year}/12稼働）</span>
       <span class="bd-val" style="color:#6EE7B7;">¥{int(y_trans_toshin):,}</span>
     </div>
     {extra_tr_html}
